@@ -1,5 +1,1 @@
-{
-  "buildCommand": "yarn build",
-  "outputDirectory": ".next",
-  "installCommand": "yarn install"
-}
+{}
