@@ -48,37 +48,27 @@ export const DATA = {
       GitHub: {
         name: "GitHub",
         url: "https://github.com/watanaberyunosuke",
-        icon: Icons.Github,
-
+        icon: Icons.github,
         navbar: true,
       },
       LinkedIn: {
         name: "LinkedIn",
         url: "https://www.linkedin.com/in/harry-watson-30486b134/",
-        icon: Icons.Linkedin,
-
+        icon: Icons.linkedin,
         navbar: true,
       },
-     /*  X: {
+      X: {
         name: "X",
-        url: "https://dub.sh/dillion-twitter",
+        url: "https://x.com/watanaberyunosuke",
         icon: Icons.x,
-
-        navbar: true,
-      },
-      Youtube: {
-        name: "Youtube",
-        url: "https://dub.sh/dillion-youtube",
-        icon: Icons.youtube,
         navbar: true,
       },
       email: {
         name: "Send Email",
-        url: "#",
+        url: "mailto:hello@example.com",
         icon: Icons.email,
-
         navbar: false,
-      }, */
+      },
     },
   },
 
@@ -172,7 +162,7 @@ export const DATA = {
         {
           type: "Website",
           href: "https://bore.bio",
-          icon: <Icons.Globe className="size-3" />,
+          icon: <Icons.globe className="size-3" />,
         },
       ],
       image: "",
@@ -196,4 +186,12 @@ export const DATA = {
       video: "",
     },
   ],
+  hackathons: [] as {
+    title: string;
+    dates: string;
+    location: string;
+    description: string;
+    image?: string;
+    links?: { title: string; href: string; icon?: any }[];
+  }[],
 } as const;
