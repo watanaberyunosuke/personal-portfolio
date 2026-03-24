@@ -1,5 +1,5 @@
 import { Icons } from "@/components/icons";
-import { HomeIcon, NotebookIcon } from "lucide-react";
+import { HomeIcon, NotebookIcon, LayoutGrid } from "lucide-react";
 
 export const DATA = {
   name: "Harry Watson",
@@ -40,6 +40,7 @@ export const DATA = {
   navbar: [
     { href: "/", icon: HomeIcon, label: "Home" },
     { href: "/blog", icon: NotebookIcon, label: "Blog" },
+    { href: "/graph", icon: LayoutGrid, label: "Graph" },
   ],
   contact: {
     email: "hello@example.com",
@@ -48,25 +49,25 @@ export const DATA = {
       GitHub: {
         name: "GitHub",
         url: "https://github.com/watanaberyunosuke",
-        icon: Icons.github,
+        icon: Icons.GitHub,
         navbar: true,
       },
       LinkedIn: {
         name: "LinkedIn",
         url: "https://www.linkedin.com/in/harry-watson-30486b134/",
-        icon: Icons.linkedin,
+        icon: Icons.LinkedIn,
         navbar: true,
       },
       X: {
         name: "X",
         url: "https://x.com/watanaberyunosuke",
-        icon: Icons.x,
+        icon: Icons.X,
         navbar: true,
       },
       email: {
         name: "Send Email",
         url: "mailto:hello@example.com",
-        icon: Icons.email,
+        icon: Icons.Email,
         navbar: false,
       },
     },
@@ -162,7 +163,7 @@ export const DATA = {
         {
           type: "Website",
           href: "https://bore.bio",
-          icon: <Icons.globe className="size-3" />,
+          icon: <Icons.Globe className="size-3" />,
         },
       ],
       image: "",
