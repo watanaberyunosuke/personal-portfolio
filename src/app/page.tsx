@@ -12,7 +12,7 @@ import TechStackSection from "@/components/section/tech-stack";
 import GraphPreview from "@/components/section/graph-preview";
 import GitHubStatus from "@/components/section/github-status";
 import Commonplace from "@/components/section/commonplace";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 
 const BLUR_FADE_DELAY = 0.04;
@@ -70,12 +70,7 @@ export default function Page() {
       {/* 5. Commonplace */}
       <Commonplace />
 
-      {/* 6. Projects */}
-      <SectionCard id="projects" delay={BLUR_FADE_DELAY * 11} className="p-10">
-        <ProjectsSection />
-      </SectionCard>
-
-      {/* 7. Work & Education */}
+      {/* 6. Work & Education */}
       <SectionCard id="experience" delay={BLUR_FADE_DELAY * 13} className="p-10 space-y-12">
         <section id="work" className="space-y-6">
           <h2 className="text-3xl font-bold tracking-tight">Experience</h2>
@@ -101,10 +96,15 @@ export default function Page() {
                       <img
                         src={education.logoUrl}
                         alt={education.school}
-                        className="size-14 p-2 border rounded-2xl shadow-sm ring-1 ring-border overflow-hidden object-contain flex-none bg-background group-hover:shadow-md transition-all"
+                        className="size-16 p-1.5 border rounded-2xl shadow-sm ring-1 ring-border overflow-hidden object-contain flex-none bg-white group-hover:shadow-md transition-all"
                       />
                     ) : (
-                      <div className="size-14 p-2 border rounded-2xl shadow-sm ring-1 ring-border bg-muted flex-none" />
+                      <div className="size-16 p-1.5 border rounded-2xl shadow-sm ring-1 ring-border bg-muted flex-none flex items-center justify-center">
+                        <GraduationCap
+                          className="size-7 text-muted-foreground"
+                          aria-hidden
+                        />
+                      </div>
                     )}
                     <div className="flex-1 min-w-0 flex flex-col gap-1">
                       <div className="font-semibold leading-none flex items-center gap-2 text-xl">
@@ -126,6 +126,11 @@ export default function Page() {
             ))}
           </div>
         </section>
+      </SectionCard>
+
+      {/* 7. Projects */}
+      <SectionCard id="projects" delay={BLUR_FADE_DELAY * 11} className="p-10">
+        <ProjectsSection />
       </SectionCard>
 
       {/* 8. Contact */}
