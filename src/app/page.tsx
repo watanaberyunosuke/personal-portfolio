@@ -96,12 +96,12 @@ export default function Page() {
                       <img
                         src={education.logoUrl}
                         alt={education.school}
-                        className="size-14 p-2 border rounded-2xl shadow-sm ring-1 ring-border overflow-hidden object-contain flex-none bg-white group-hover:shadow-md transition-all"
+                        className="size-16 p-1.5 border rounded-2xl shadow-sm ring-1 ring-border overflow-hidden object-contain flex-none bg-white group-hover:shadow-md transition-all"
                       />
                     ) : (
-                      <div className="size-14 p-2 border rounded-2xl shadow-sm ring-1 ring-border bg-muted flex-none flex items-center justify-center">
+                      <div className="size-16 p-1.5 border rounded-2xl shadow-sm ring-1 ring-border bg-muted flex-none flex items-center justify-center">
                         <GraduationCap
-                          className="size-6 text-muted-foreground"
+                          className="size-7 text-muted-foreground"
                           aria-hidden
                         />
                       </div>

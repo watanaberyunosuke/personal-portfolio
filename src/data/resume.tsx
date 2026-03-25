@@ -127,15 +127,15 @@ export const DATA = {
         icon: Icons.LinkedIn,
         navbar: true,
       },
-      X: {
+      /* X: {
         name: "X",
         url: "https://x.com/watanaberyunosuke",
         icon: Icons.X,
         navbar: true,
-      },
+      }, */
       email: {
         name: "Send Email",
-        url: "mailto:hello@example.com",
+        url: "mailto:harry@harrydatahub.com",
         icon: Icons.Email,
         navbar: false,
       },
@@ -149,19 +149,19 @@ export const DATA = {
       badges: [],
       location: "Melbourne, VIC",
       title: "Senior Data Analytics Specialist",
-      logoUrl: "",
+      logoUrl: "/yarra-valley-water.png",
       start: "Sep 2025",
       end: "Present",
       description:
         "Lead the design, optimisation, and operational reliability of digital-metering and water-analytics data platforms. Drive architectural improvements across ingestion, storage, modelling, and reporting layers using Databricks and Spark Structured Streaming. Implement CI/CD automation with Azure DevOps.",
     },
     {
-      company: "Halo Lab",
-      href: "#",
+      company: "Halo Labs",
+      href: "https://halolabs.com.au/",
       badges: [],
       location: "Melbourne, VIC",
       title: "Data Engineer",
-      logoUrl: "",
+      logoUrl: "/halolabs_au_logo.jpeg",
       start: "Jan 2024",
       end: "Sep 2025",
       description:
@@ -173,19 +173,19 @@ export const DATA = {
       badges: [],
       location: "Melbourne, VIC",
       title: "Associate Data Engineer",
-      logoUrl: "",
+      logoUrl: "/boq.png",
       start: "Jan 2024",
-      end: "Present",
+      end: "Jan 2025",
       description:
         "Work on the flagship Intelligent Data Platform, enhancing ETL pipelines and maintaining a scalable enterprise data warehouse. Manage daily operations with Azure Data Factory, resulting in a 30% reduction in processing time. Implement data streaming solutions using EventHub, Kafka, and Databricks.",
     },
     {
-      company: "Randstad / Department for Education (SA)",
+      company: "Department for Education (SA)",
       href: "https://www.education.sa.gov.au",
       badges: [],
       location: "Adelaide, SA",
       title: "Data Engineer",
-      logoUrl: "",
+      logoUrl: "/department-for-education-sa.jpg",
       start: "Aug 2023",
       end: "Jan 2024",
       description:
@@ -213,7 +213,7 @@ export const DATA = {
   projects: [
     {
       title: "Bore (Bandicoot Outreach and Revival Endeavor)",
-      href: "https://bore.bio",
+      href: "#",
       dates: "Mar 2023 - Jun 2023",
       active: true,
       description:
@@ -278,7 +278,7 @@ export const DATA = {
     {
       title: "Gear",
       subtitle: "Tools that help me work.",
-      items: ["Keychron K2", "Logitech MX Master 3", "BenQ ScreenBar"],
+      items: ["Keychron K2", "Logitech MX Vertical", "Dell Monitor"],
     },
   ],
 } as const;
