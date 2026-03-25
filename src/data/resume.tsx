@@ -8,34 +8,103 @@ export const DATA = {
   location: "Melbourne, Australia",
   locationLink: "https://www.google.com/maps/place/melbourne",
   description:
-    "Data Engineer and Software Engineer. Improving human society through technology.",
+    "Data Engineer and Software Engineer. Improving human society through technology and digital health.",
   summary:
-    "As a passionate and dedicated data engineer, I am seeking a challenging position where I can leverage my experience and skills in data engineering development and DevOps. I have successfully delivered numerous team projects. My technical proficiency spans across development, DevOps, and data engineering, ensuring the production of high-quality, readable, maintainable, and reusable code. With a diverse background and a commitment to continuous learning, I am eager to adopt and apply new technologies to drive innovation and efficiency across different domains.",
+    "I am a data engineer and software engineer focused on improving human society through technology and digital health. My work spans data engineering, software development, and DevOps, with an emphasis on building maintainable systems, reliable platforms, and practical products that connect data to real-world outcomes. I enjoy working across the stack, from modern frontend frameworks to cloud infrastructure and large-scale data tooling.",
   avatarUrl: "",
-  skills: [
-    "Python",
-    "SQL",
-    "Scala",
-    "Bash",
-    "PowerShell",
-    "Rust",
-    "Java",
-    "React",
-    "Next.js",
-    "Typescript",
-    "Node.js",
-    "Go",
-    "PostgreSQL",
-    "Docker",
-    "Kubernetes",
-    "Databricks",
-    "Snowflake",
-    "Kafka",
-    "Azure Data Factory",
-    "DBT",
-    "Terraform",
-    "AWS",
-    "Azure",
+  techStack: [
+    {
+      title: "SaaS",
+      groups: [
+        {
+          title: "Language",
+          skills: ["Python", "Java", "Rust", "Go", "Scala", "Typescript"],
+        },
+        {
+          title: "Framework",
+          subgroups: [
+            {
+              title: "Frontend",
+              skills: ["React", "Angular", "Tailwind CSS"],
+            },
+            {
+              title: "Backend",
+              skills: ["FastAPI", "Flask", "Django", "Next.js", "Node.js"],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: "Data Engineering",
+      groups: [
+        {
+          title: "Platform",
+          skills: [
+            "Databricks",
+            "Snowflake",
+            "Spark",
+            "Kafka",
+            "PostgreSQL",
+            "MongoDB",
+          ],
+        },
+      ],
+    },
+    {
+      title: "Data Science",
+      groups: [
+        {
+          title: "Toolkit",
+          skills: [
+            "scikit-learn",
+            "TensorFlow",
+            "PyTorch",
+            "NumPy",
+            "Matplotlib",
+            "Plotly",
+          ],
+        },
+      ],
+    },
+    {
+      title: "Mobile Platform and 3D Modelling",
+      groups: [
+        {
+          title: "Build",
+          skills: ["Kotlin", "Swift", "Unity", "Unreal Engine", "C#"],
+        },
+      ],
+    },
+    {
+      title: "Cloud and DevOps",
+      groups: [
+        {
+          title: "Infrastructure",
+          skills: [
+            "AWS",
+            "Azure",
+            "GCP",
+            "Bash",
+            "PowerShell",
+            "Terraform",
+            "Git",
+            "Docker",
+            "Kubernetes",
+            "Cloudflare",
+          ],
+        },
+      ],
+    },
+    {
+      title: "Others",
+      groups: [
+        {
+          title: "Tools",
+          skills: ["GraphQL", "Prisma", "Markdown", "LaTeX"],
+        },
+      ],
+    },
   ],
   navbar: [
     { href: "/", icon: HomeIcon, label: "Home" },
@@ -48,25 +117,25 @@ export const DATA = {
       GitHub: {
         name: "GitHub",
         url: "https://github.com/watanaberyunosuke",
-        icon: Icons.github,
+        icon: Icons.GitHub,
         navbar: true,
       },
       LinkedIn: {
         name: "LinkedIn",
-        url: "https://www.linkedin.com/in/harry-watson-30486b134/",
-        icon: Icons.linkedin,
+        url: "https://www.linkedin.com/in/harry-zhan-watson-30486b134/",
+        icon: Icons.LinkedIn,
         navbar: true,
       },
       X: {
         name: "X",
         url: "https://x.com/watanaberyunosuke",
-        icon: Icons.x,
+        icon: Icons.X,
         navbar: true,
       },
       email: {
         name: "Send Email",
         url: "mailto:hello@example.com",
-        icon: Icons.email,
+        icon: Icons.Email,
         navbar: false,
       },
     },
@@ -162,7 +231,7 @@ export const DATA = {
         {
           type: "Website",
           href: "https://bore.bio",
-          icon: <Icons.globe className="size-3" />,
+          icon: <Icons.Globe className="size-3" />,
         },
       ],
       image: "",
@@ -194,4 +263,21 @@ export const DATA = {
     image?: string;
     links?: { title: string; href: string; icon?: any }[];
   }[],
+  commonplace: [
+    {
+      title: "Reading",
+      subtitle: "Recent books that shaped my thinking.",
+      items: ["The Antidote", "Being Mortal", "Stolen Focus"],
+    },
+    {
+      title: "Philosophy",
+      subtitle: "Principles I live by.",
+      items: ["Stoicism", "Effective Altruism", "Incrementalism"],
+    },
+    {
+      title: "Gear",
+      subtitle: "Tools that help me work.",
+      items: ["Keychron K2", "Logitech MX Master 3", "BenQ ScreenBar"],
+    },
+  ],
 } as const;
