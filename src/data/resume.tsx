@@ -162,7 +162,7 @@ export const DATA = {
       location: "Melbourne, VIC",
       title: "Data Engineer",
       logoUrl: "/halolabs_au_logo.jpeg",
-      start: "Jan 2024",
+      start: "Jan 2025",
       end: "Sep 2025",
       description:
         "Developed and maintained data platforms and clinical manager database connections. Implemented ETL pipelines and data platform solutions using Databricks and Airflow.",
