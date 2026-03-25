@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { DATA } from "@/data/resume";
 import BlurFade from "@/components/magicui/blur-fade";
@@ -55,9 +55,20 @@ const SKILL_ICON_IDS: Record<string, string> = {
   LaTeX: "latex",
 };
 
+const LOCAL_SKILL_ICON_PATHS: Record<string, string> = {
+  Databricks: "/tech-stack-icons/databricks.svg",
+  Snowflake: "/tech-stack-icons/snowflake.svg",
+  Spark: "/tech-stack-icons/spark.svg",
+  NumPy: "/tech-stack-icons/numpy.svg",
+  Matplotlib: "/tech-stack-icons/matplotlib.svg",
+  Plotly: "/tech-stack-icons/plotly.svg",
+};
+
 interface TechStackSectionProps {
   readonly blurFadeDelay: number;
 }
+
+type TechStackSectionTitle = (typeof DATA.techStack)[number]["title"];
 
 function getFallbackLabel(skill: string) {
   return skill
@@ -75,10 +86,11 @@ function SkillChip({
   readonly skill: string;
   readonly theme: "light" | "dark";
 }) {
+  const localIconUrl = LOCAL_SKILL_ICON_PATHS[skill];
   const skillIconId = SKILL_ICON_IDS[skill];
-  const iconUrl = skillIconId
+  const iconUrl = localIconUrl ?? (skillIconId
     ? `https://skillicons.dev/icons?i=${skillIconId}&theme=${theme}`
-    : null;
+    : null);
 
   return (
     <div className="flex h-full min-h-16 items-center gap-3 rounded-2xl border border-border bg-background/50 px-4 py-4 transition-all hover:bg-background hover:shadow-sm hover:ring-1 hover:ring-primary/20">
@@ -110,10 +122,17 @@ export default function TechStackSection({
   blurFadeDelay,
 }: TechStackSectionProps) {
   const { resolvedTheme } = useTheme();
-  const theme = resolvedTheme === "dark" ? "dark" : "light";
-  const [activeSectionTitle, setActiveSectionTitle] = useState(
-    DATA.techStack[0]?.title ?? ""
+  const [activeSectionTitle, setActiveSectionTitle] = useState<
+    TechStackSectionTitle | null
+  >(
+    DATA.techStack[0]?.title ?? null
   );
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const theme = mounted && resolvedTheme === "dark" ? "dark" : "light";
 
   const activeSection =
     DATA.techStack.find((section) => section.title === activeSectionTitle) ??

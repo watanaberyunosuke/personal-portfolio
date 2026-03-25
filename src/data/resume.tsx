@@ -14,28 +14,6 @@ export const DATA = {
   avatarUrl: "",
   techStack: [
     {
-      title: "SaaS",
-      groups: [
-        {
-          title: "Language",
-          skills: ["Python", "Java", "Rust", "Go", "Scala", "Typescript"],
-        },
-        {
-          title: "Framework",
-          subgroups: [
-            {
-              title: "Frontend",
-              skills: ["React", "Angular", "Tailwind CSS"],
-            },
-            {
-              title: "Backend",
-              skills: ["FastAPI", "Flask", "Django", "Next.js", "Node.js"],
-            },
-          ],
-        },
-      ],
-    },
-    {
       title: "Data Engineering",
       groups: [
         {
@@ -68,11 +46,24 @@ export const DATA = {
       ],
     },
     {
-      title: "Mobile Platform and 3D Modelling",
+      title: "SaaS",
       groups: [
         {
-          title: "Build",
-          skills: ["Kotlin", "Swift", "Unity", "Unreal Engine", "C#"],
+          title: "Language",
+          skills: ["Python", "Java", "Rust", "Go", "Scala", "Typescript"],
+        },
+        {
+          title: "Framework",
+          subgroups: [
+            {
+              title: "Frontend",
+              skills: ["React", "Angular", "Tailwind CSS"],
+            },
+            {
+              title: "Backend",
+              skills: ["FastAPI", "Flask", "Django", "Next.js", "Node.js"],
+            },
+          ],
         },
       ],
     },
@@ -93,6 +84,15 @@ export const DATA = {
             "Kubernetes",
             "Cloudflare",
           ],
+        },
+      ],
+    },
+    {
+      title: "Mobile Platform and 3D Modelling",
+      groups: [
+        {
+          title: "Build",
+          skills: ["Kotlin", "Swift", "Unity", "Unreal Engine", "C#"],
         },
       ],
     },
