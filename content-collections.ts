@@ -15,6 +15,7 @@ const posts = defineCollection({
         author: z.string().optional(),
         summary: z.string(),
         image: z.string().optional(),
+        tags: z.array(z.string()).min(1),
         content: z.string(),
     }),
     transform: async (document, context) => {
@@ -31,4 +32,3 @@ const posts = defineCollection({
 export default defineConfig({
     collections: [posts],
 });
-

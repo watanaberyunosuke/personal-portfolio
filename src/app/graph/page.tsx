@@ -1,4 +1,6 @@
+import { allPosts } from "content-collections";
 import UnifiedGraph from "@/components/unified-graph/unified-graph";
+import { generateGraphData } from "@/data/graph-data";
 
 export const metadata = {
   title: "Harry's Unified Graph",
@@ -6,5 +8,7 @@ export const metadata = {
 };
 
 export default function GraphPage() {
-  return <UnifiedGraph />;
+  const data = generateGraphData(allPosts);
+
+  return <UnifiedGraph data={data} />;
 }
