@@ -1,9 +1,10 @@
 export interface GraphNode {
   id: string;
   name: string;
-  group: number; // 1: Category, 2: Item
+  group: number; // 1: Tag, 2: Post
   category: string;
   color?: string;
+  href?: string;
 }
 
 export interface GraphLink {
@@ -11,74 +12,123 @@ export interface GraphLink {
   target: string;
 }
 
+export interface GraphSectionItem {
+  id: string;
+  name: string;
+  href?: string;
+}
+
+export interface GraphSection {
+  id: string;
+  name: string;
+  count: number;
+  items: GraphSectionItem[];
+}
+
 export interface GraphData {
   nodes: GraphNode[];
   links: GraphLink[];
+  sections: GraphSection[];
 }
 
-export const GRAPH_DATA: GraphData = {
-  nodes: [
-    // Categories (Group 1)
-    { id: "about-me", name: "About Me", group: 1, category: "about-me", color: "#61dafb" },
-    { id: "professional", name: "Professional", group: 1, category: "professional", color: "#61dafb" },
-    { id: "projects", name: "Projects", group: 1, category: "projects", color: "#61dafb" },
-    { id: "places", name: "Places", group: 1, category: "places", color: "#61dafb" },
+export interface GraphPostSource {
+  title: string;
+  tags: readonly string[];
+  _meta: {
+    path: string;
+  };
+}
 
-    // Sub-items for About Me (Group 2)
-    { id: "intro", name: "intro", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "about", name: "about", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "ethics", name: "ethics", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "books", name: "books", group: 2, category: "about-me", color: "#ff007f" },
+const TAG_NODE_COLOR = "#61dafb";
+const POST_NODE_COLOR = "#ff007f";
 
-    // Sub-items for Professional (Group 2)
-    { id: "work", name: "work", group: 2, category: "professional", color: "#ff007f" },
-    { id: "education", name: "education", group: 2, category: "professional", color: "#ff007f" },
-    { id: "tech-stack", name: "tech stack", group: 2, category: "professional", color: "#ff007f" },
-    { id: "github", name: "github", group: 2, category: "professional", color: "#ff007f" },
+function toSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
-    // Sub-items for Projects (Group 2)
-    { id: "p1", name: "projects", group: 2, category: "projects", color: "#ff007f" },
+function getPostSlug(path: string) {
+  return path.replace(/\.mdx$/, "");
+}
 
-    // Sub-items for Places (Group 2)
-    { id: "hong-kong", name: "hong kong", group: 2, category: "places", color: "#ff007f" },
+export function generateGraphData(posts: readonly GraphPostSource[]): GraphData {
+  const tagMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      items: GraphSectionItem[];
+    }
+  >();
+  const nodes: GraphNode[] = [];
+  const links: GraphLink[] = [];
 
-    // Extra nodes from image for filler/detail
-    { id: "world", name: "world", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "medisafe", name: "medisafe", group: 2, category: "professional", color: "#ff007f" },
-    { id: "gsoc", name: "gsoc", group: 2, category: "professional", color: "#ff007f" },
-    { id: "iteration", name: "iteration", group: 2, category: "projects", color: "#ff007f" },
-    { id: "privacy", name: "privacy", group: 2, category: "places", color: "#ff007f" },
-    { id: "biohacking", name: "biohacking", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "keyboard", name: "keyboard", group: 2, category: "about-me", color: "#ff007f" },
-    { id: "durov", name: "durov", group: 2, category: "about-me", color: "#ff007f" },
-  ],
-  links: [
-    { source: "about-me", target: "intro" },
-    { source: "about-me", target: "about" },
-    { source: "about-me", target: "ethics" },
-    { source: "about-me", target: "books" },
-    { source: "about-me", target: "world" },
-    { source: "about-me", target: "biohacking" },
-    { source: "about-me", target: "keyboard" },
-    { source: "about-me", target: "durov" },
+  const sortedPosts = [...posts].sort((a, b) => a.title.localeCompare(b.title));
 
-    { source: "professional", target: "work" },
-    { source: "professional", target: "education" },
-    { source: "professional", target: "tech-stack" },
-    { source: "professional", target: "github" },
-    { source: "professional", target: "medisafe" },
-    { source: "professional", target: "gsoc" },
+  for (const post of sortedPosts) {
+    const slug = getPostSlug(post._meta.path);
+    const postId = `post:${slug}`;
+    const uniqueTags = [...new Set(post.tags.map((tag) => tag.trim()).filter(Boolean))];
 
-    { source: "projects", target: "p1" },
-    { source: "projects", target: "iteration" },
+    nodes.push({
+      id: postId,
+      name: post.title,
+      group: 2,
+      category: "post",
+      color: POST_NODE_COLOR,
+      href: `/blog/${slug}`,
+    });
 
-    { source: "places", target: "hong-kong" },
-    { source: "places", target: "privacy" },
+    for (const tag of uniqueTags) {
+      const tagSlug = toSlug(tag);
+      const tagId = `tag:${tagSlug}`;
+      const existingTag = tagMap.get(tagId);
 
-    // Cross links for visual complexity
-    { source: "work", target: "education" },
-    { source: "tech-stack", target: "projects" },
-    { source: "about", target: "work" },
-    { source: "world", target: "github" },
-  ],
-};
+      if (!existingTag) {
+        tagMap.set(tagId, {
+          id: tagId,
+          name: tag,
+          items: [{ id: postId, name: post.title, href: `/blog/${slug}` }],
+        });
+        nodes.push({
+          id: tagId,
+          name: tag,
+          group: 1,
+          category: "tag",
+          color: TAG_NODE_COLOR,
+        });
+      } else {
+        existingTag.items.push({ id: postId, name: post.title, href: `/blog/${slug}` });
+      }
+
+      links.push({
+        source: tagId,
+        target: postId,
+      });
+    }
+  }
+
+  const sections: GraphSection[] = [...tagMap.values()]
+    .map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+      count: tag.items.length,
+      items: [...tag.items].sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+
+  return {
+    nodes,
+    links,
+    sections,
+  };
+}

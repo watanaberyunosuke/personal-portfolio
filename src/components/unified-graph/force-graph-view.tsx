@@ -1,82 +1,91 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { GRAPH_DATA } from "@/data/graph-data";
+import { useRouter } from "next/navigation";
+import type { GraphData, GraphNode } from "@/data/graph-data";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
 });
 
-export function ForceGraphView() {
+interface ForceGraphViewProps {
+  readonly data: GraphData;
+}
+
+export function ForceGraphView({ data }: ForceGraphViewProps) {
   const fgRef = useRef<any>(null);
-  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const data = useMemo(() => {
+  const graphData = useMemo(() => {
     return {
-      nodes: GRAPH_DATA.nodes.map(n => ({ ...n })),
-      links: GRAPH_DATA.links.map(l => ({ ...l }))
+      nodes: data.nodes.map((node) => ({ ...node })),
+      links: data.links.map((link) => ({ ...link })),
     };
-  }, []);
-
-  if (!mounted) return null;
+  }, [data.links, data.nodes]);
 
   return (
     <div className="relative w-full h-full bg-[#050505] overflow-hidden">
       <div className="absolute top-6 right-8 text-muted-foreground/50 text-xs font-mono z-10 select-none">
-        {GRAPH_DATA.nodes.length} nodes • drag • zoom • click
+        {data.nodes.length} nodes • {data.links.length} links • drag • zoom • click
       </div>
-      
+
       <ForceGraph2D
         ref={fgRef}
-        graphData={data}
+        graphData={graphData}
         nodeLabel="name"
         nodeColor={(node: any) => node.color}
-        nodeRelSize={6}
+        nodeRelSize={7}
         linkDirectionalParticles={1}
         linkDirectionalParticleSpeed={0.005}
         linkColor={() => "rgba(255, 255, 255, 0.1)"}
         backgroundColor="rgba(0,0,0,0)"
+        nodeVal={(node: any) => (node.group === 1 ? 1.8 : 1)}
         onNodeClick={(node: any) => {
+          const graphNode = node as GraphNode & { x?: number; y?: number };
+
           if (fgRef.current) {
-            fgRef.current.centerAt(node.x, node.y, 1000);
+            fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);
             fgRef.current.zoom(2, 1000);
+          }
+
+          if (graphNode.href) {
+            window.setTimeout(() => {
+              router.push(graphNode.href!);
+            }, 250);
           }
         }}
         nodeCanvasObject={(node: any, ctx, globalScale) => {
           const label = node.name;
-          const fontSize = 12 / globalScale;
+          const fontSize = (node.group === 1 ? 14 : 11) / globalScale;
           ctx.font = `${fontSize}px Inter, sans-serif`;
 
           // Draw node circle
           ctx.beginPath();
-          ctx.arc(node.x, node.y, 4, 0, 2 * Math.PI, false);
+          ctx.arc(node.x, node.y, node.group === 1 ? 5.5 : 4, 0, 2 * Math.PI, false);
           ctx.fillStyle = node.color || "#61dafb";
           ctx.fill();
-          
+
           // Add glow effect
           ctx.shadowColor = node.color || "#61dafb";
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = node.group === 1 ? 14 : 10;
           ctx.fill();
           ctx.shadowBlur = 0;
 
           // Draw label
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-          ctx.fillText(label, node.x, node.y + 8);
+          ctx.fillStyle =
+            node.group === 1 ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.7)";
+          ctx.fillText(label, node.x, node.y + (node.group === 1 ? 10 : 8));
         }}
       />
 
       <div className="absolute bottom-8 right-8 z-10">
-        <button className="px-6 py-2.5 rounded-full border bg-card/80 backdrop-blur-xl text-sm font-medium hover:bg-muted transition-all flex items-center gap-2 shadow-2xl">
+        <div className="px-6 py-2.5 rounded-full border bg-card/80 backdrop-blur-xl text-sm font-medium flex items-center gap-2 shadow-2xl">
           <span className="size-2 rounded-full bg-primary animate-pulse" />{" "}
-          Sections Only
-        </button>
+          Generated from MDX tags
+        </div>
       </div>
     </div>
   );
