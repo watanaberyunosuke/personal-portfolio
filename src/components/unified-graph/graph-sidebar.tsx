@@ -73,7 +73,7 @@ export function GraphSidebar({ data }: GraphSidebarProps) {
   };
 
   return (
-    <div className="w-80 h-full border-r bg-card/50 backdrop-blur-xl flex flex-col p-6 z-20">
+    <div className="w-full h-full border-r bg-card/50 backdrop-blur-xl flex flex-col p-6 z-20">
       <div className="mb-8 flex flex-col gap-6">
         <Link
           href="/"
