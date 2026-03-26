@@ -18,19 +18,19 @@ export default function GraphPreview() {
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>LIVE VISUALIZATION
+                </span>MIND MAP
               </div>
             </div>
             
             <div className="space-y-3">
-              <h3 className="text-4xl font-bold tracking-tight">Unified Graph</h3>
+              <h3 className="text-4xl font-bold tracking-tight">Knowledge Graph</h3>
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
                 An interactive, force-directed map of my knowledge base, connecting projects, technologies, and philosophies.
               </p>
             </div>
 
             <div className="flex items-center gap-3 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform duration-300">
-              EXPLORE THE NETWORK <ArrowRight className="size-4" />
+              EXPLORE THE GRAPH <ArrowRight className="size-4" />
             </div>
           </div>
 
