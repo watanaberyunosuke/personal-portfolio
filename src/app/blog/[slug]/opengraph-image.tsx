@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { DATA } from "@/data/resume";
 import { getPostBySlug } from "@/lib/blog-posts";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export const alt = "Blog Post";
 export const size = {
@@ -127,7 +127,7 @@ export default async function Image({
     try {
         const fontData = await getFontData();
         const { slug } = await params;
-        const post = getPostBySlug(slug);
+        const post = await getPostBySlug(slug);
         const imageUrl = DATA.avatarUrl
             ? new URL(DATA.avatarUrl, DATA.url).toString()
             : undefined;

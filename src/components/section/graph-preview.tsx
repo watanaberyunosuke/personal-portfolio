@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, Network } from "lucide-react";
 import BlurFade from "@/components/magicui/blur-fade";
-import { allPosts } from "content-collections";
 import { generateGraphData } from "@/data/graph-data";
+import { getSortedPosts } from "@/lib/blog-posts";
 
-export default function GraphPreview() {
-  const stats = generateGraphData(allPosts).stats;
+export default async function GraphPreview() {
+  const stats = generateGraphData(await getSortedPosts()).stats;
 
   return (
     <BlurFade delay={0.1}>

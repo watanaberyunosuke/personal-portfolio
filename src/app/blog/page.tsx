@@ -28,8 +28,7 @@ export default async function BlogPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
-
-  const sortedPosts = getSortedPosts();
+  const sortedPosts = await getSortedPosts();
 
   const totalPages = Math.ceil(sortedPosts.length / PAGE_SIZE);
   const currentPage = normalizePage(pageParam, totalPages);
