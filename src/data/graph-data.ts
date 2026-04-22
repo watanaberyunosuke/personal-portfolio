@@ -29,14 +29,17 @@ export interface GraphData {
   nodes: GraphNode[];
   links: GraphLink[];
   sections: GraphSection[];
+  stats: {
+    posts: number;
+    topics: number;
+    connections: number;
+  };
 }
 
 export interface GraphPostSource {
   title: string;
+  slug: string;
   tags: readonly string[];
-  _meta: {
-    path: string;
-  };
 }
 
 const TAG_NODE_COLOR = "#61dafb";
@@ -48,10 +51,6 @@ function toSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function getPostSlug(path: string) {
-  return path.replace(/\.mdx$/, "");
 }
 
 export function generateGraphData(posts: readonly GraphPostSource[]): GraphData {
@@ -69,7 +68,7 @@ export function generateGraphData(posts: readonly GraphPostSource[]): GraphData 
   const sortedPosts = [...posts].sort((a, b) => a.title.localeCompare(b.title));
 
   for (const post of sortedPosts) {
-    const slug = getPostSlug(post._meta.path);
+    const slug = post.slug;
     const postId = `post:${slug}`;
     const uniqueTags = [...new Set(post.tags.map((tag) => tag.trim()).filter(Boolean))];
 
@@ -130,5 +129,10 @@ export function generateGraphData(posts: readonly GraphPostSource[]): GraphData 
     nodes,
     links,
     sections,
+    stats: {
+      posts: sortedPosts.length,
+      topics: sections.length,
+      connections: links.length,
+    },
   };
 }

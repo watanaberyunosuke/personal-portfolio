@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "sync:blog": "tsc -p scripts/tsconfig.json && node .generated/scripts/sync-notion-blog.js",
+    "prebuild": "tsc -p scripts/tsconfig.json && node .generated/scripts/sync-notion-blog.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

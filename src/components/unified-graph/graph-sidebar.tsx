@@ -87,6 +87,20 @@ export function GraphSidebar({ data }: GraphSidebarProps) {
             Blog topics generated from MDX frontmatter tags.
           </p>
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-2xl border bg-background/70 p-3">
+            <div className="text-lg font-semibold tabular-nums">{data.stats.posts}</div>
+            <div className="text-xs text-muted-foreground">Blogs</div>
+          </div>
+          <div className="rounded-2xl border bg-background/70 p-3">
+            <div className="text-lg font-semibold tabular-nums">{data.stats.topics}</div>
+            <div className="text-xs text-muted-foreground">Topics</div>
+          </div>
+          <div className="rounded-2xl border bg-background/70 p-3">
+            <div className="text-lg font-semibold tabular-nums">{data.stats.connections}</div>
+            <div className="text-xs text-muted-foreground">Links</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">

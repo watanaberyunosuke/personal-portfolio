@@ -10,6 +10,7 @@ const posts = defineCollection({
     include: "**/*.mdx",
     schema: z.object({
         title: z.string(),
+        slug: z.string().optional(),
         publishedAt: z.string(),
         updatedAt: z.string().optional(),
         author: z.string().optional(),
@@ -19,11 +20,16 @@ const posts = defineCollection({
         content: z.string(),
     }),
     transform: async (document, context) => {
+        const defaultSlug = document._meta.path
+            .split("/")
+            .filter(Boolean)
+            .pop() ?? document._meta.path;
         const mdx = await compileMDX(context, document, {
             remarkPlugins: [remarkGfm, remarkCodeMeta],
         });
         return {
-        ...document,
+            ...document,
+            slug: document.slug?.trim() || defaultSlug,
             mdx,
         };
     },
