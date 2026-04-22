@@ -1,10 +1,12 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight, Network } from "lucide-react";
 import BlurFade from "@/components/magicui/blur-fade";
+import { generateGraphData } from "@/data/graph-data";
+import { getSortedPosts } from "@/lib/blog-posts";
 
-export default function GraphPreview() {
+export default async function GraphPreview() {
+  const stats = generateGraphData(await getSortedPosts()).stats;
+
   return (
     <BlurFade delay={0.1}>
       <Link href="/graph" className="group block">
@@ -27,6 +29,21 @@ export default function GraphPreview() {
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
                 An interactive, force-directed map of my knowledge base, connecting projects, technologies, and philosophies.
               </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 text-sm">
+              <div className="rounded-full border bg-background/70 px-4 py-2 font-medium shadow-sm">
+                <span className="text-foreground">{stats.posts}</span>{" "}
+                <span className="text-muted-foreground">blogs</span>
+              </div>
+              <div className="rounded-full border bg-background/70 px-4 py-2 font-medium shadow-sm">
+                <span className="text-foreground">{stats.topics}</span>{" "}
+                <span className="text-muted-foreground">topics</span>
+              </div>
+              <div className="rounded-full border bg-background/70 px-4 py-2 font-medium shadow-sm">
+                <span className="text-foreground">{stats.connections}</span>{" "}
+                <span className="text-muted-foreground">connections</span>
+              </div>
             </div>
 
             <div className="flex items-center gap-3 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform duration-300">

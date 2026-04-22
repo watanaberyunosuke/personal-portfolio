@@ -1,26 +1,25 @@
-import { allPosts } from "content-collections";
 import { formatDate } from "@/lib/utils";
 import { DATA } from "@/data/resume";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXContent } from "@content-collections/mdx/react";
-import { mdxComponents } from "@/mdx-components";
+import { markdownComponents, mdxComponents } from "@/mdx-components";
 import Link from "next/link";
+import { getPostBySlug, getPostSlug, getSortedPosts } from "@/lib/blog-posts";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-function getSortedPosts() {
-  return [...allPosts].sort((a, b) => {
-    if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
-      return -1;
-    }
-    return 1;
-  });
-}
+function resolveImageUrl(image?: string) {
+  if (!image) {
+    return undefined;
+  }
 
-export async function generateStaticParams() {
-  return allPosts.map((post) => ({
-    slug: post._meta.path.replace(/\.mdx$/, ""),
-  }));
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
+
+  return `${DATA.url}${image}`;
 }
 
 export async function generateMetadata({
@@ -31,7 +30,7 @@ export async function generateMetadata({
   }>;
 }): Promise<Metadata | undefined> {
   const { slug } = await params;
-  const post = allPosts.find((p) => p._meta.path.replace(/\.mdx$/, "") === slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return undefined;
@@ -40,9 +39,11 @@ export async function generateMetadata({
   let {
     title,
     publishedAt: publishedTime,
+    updatedAt,
     summary: description,
     image,
   } = post;
+  const imageUrl = resolveImageUrl(image);
 
   return {
     title,
@@ -52,11 +53,12 @@ export async function generateMetadata({
       description,
       type: "article",
       publishedTime,
+      ...(updatedAt ? { modifiedTime: updatedAt } : {}),
       url: `${DATA.url}/blog/${slug}`,
-      ...(image && {
+      ...(imageUrl && {
         images: [
           {
-            url: `${DATA.url}${image}`,
+            url: imageUrl,
           },
         ],
       }),
@@ -65,8 +67,8 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      ...(image && {
-        images: [`${DATA.url}${image}`],
+      ...(imageUrl && {
+        images: [imageUrl],
       }),
     },
   };
@@ -80,11 +82,11 @@ export default async function Blog({
   }>;
 }) {
   const { slug } = await params;
-  const sortedPosts = getSortedPosts();
-  const currentIndex = sortedPosts.findIndex(
-    (p) => p._meta.path.replace(/\.mdx$/, "") === slug
-  );
-  const post = sortedPosts[currentIndex];
+  const [sortedPosts, post] = await Promise.all([
+    getSortedPosts(),
+    getPostBySlug(slug),
+  ]);
+  const currentIndex = sortedPosts.findIndex((post) => getPostSlug(post) === slug);
 
   if (!post) {
     notFound();
@@ -93,23 +95,18 @@ export default async function Blog({
   const previousPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
   const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
 
-  const getSlug = (post: (typeof sortedPosts)[0]) =>
-    post._meta.path.replace(/\.mdx$/, "");
-
   const jsonLdContent = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     datePublished: post.publishedAt,
-    dateModified: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
     description: post.summary,
-    image: post.image
-      ? `${DATA.url}${post.image}`
-      : `${DATA.url}/blog/${slug}/opengraph-image`,
+    image: resolveImageUrl(post.image) ?? `${DATA.url}/blog/${slug}/opengraph-image`,
     url: `${DATA.url}/blog/${slug}`,
     author: {
       "@type": "Person",
-      name: DATA.name,
+      name: post.author ?? DATA.name,
     },
   }).replace(/</g, "\\u003c");
 
@@ -148,14 +145,24 @@ export default async function Blog({
         />
       </div>
       <article className="prose max-w-full text-pretty font-sans leading-relaxed text-muted-foreground dark:prose-invert">
-        <MDXContent code={post.mdx} components={mdxComponents} />
+        {post.content.kind === "mdx" ? (
+          <MDXContent code={post.content.code} components={mdxComponents} />
+        ) : (
+          <Markdown
+            components={markdownComponents}
+            remarkPlugins={[remarkGfm]}
+            skipHtml
+          >
+            {post.content.markdown}
+          </Markdown>
+        )}
       </article>
 
       <nav className="mt-12 pt-8 max-w-2xl">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           {previousPost ? (
             <Link
-              href={`/blog/${getSlug(previousPost)}`}
+              href={`/blog/${getPostSlug(previousPost)}`}
               className="group flex-1 flex flex-col gap-1 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
             >
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -172,7 +179,7 @@ export default async function Blog({
 
           {nextPost ? (
             <Link
-              href={`/blog/${getSlug(nextPost)}`}
+              href={`/blog/${getPostSlug(nextPost)}`}
               className="group flex-1 flex flex-col gap-1 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors text-right"
             >
               <span className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
