@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { DATA } from "@/data/resume";
 import BlurFade from "@/components/magicui/blur-fade";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/lib/use-hydrated";
 
 const SKILL_ICON_IDS: Record<string, string> = {
   Python: "py",
@@ -127,12 +128,8 @@ export default function TechStackSection({
   >(
     DATA.techStack[0]?.title ?? null
   );
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const theme = mounted && resolvedTheme === "dark" ? "dark" : "light";
+  const hydrated = useHydrated();
+  const theme = hydrated && resolvedTheme === "dark" ? "dark" : "light";
 
   const activeSection =
     DATA.techStack.find((section) => section.title === activeSectionTitle) ??

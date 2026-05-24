@@ -3,17 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function ModeToggle({ className }: { readonly className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
-  const activeTheme = mounted && resolvedTheme === "dark" ? "dark" : "light";
+  const hydrated = useHydrated();
+  const activeTheme = hydrated && resolvedTheme === "dark" ? "dark" : "light";
 
   return (
     <Button
