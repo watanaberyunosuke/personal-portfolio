@@ -22,6 +22,7 @@ const BASE_SIZE = 40;
 const BASE_ICON_SIZE = 20;
 const ICON_SIZE_RATIO = 0.5;
 const SPRING = { mass: 0.1, stiffness: 150, damping: 12 };
+const RESTING_MOUSE_X = -10_000;
 
 interface DockContextValue {
   mouseX: MotionValue<number>;
@@ -32,13 +33,13 @@ interface DockContextValue {
 const DockContext = createContext<DockContextValue | null>(null);
 
 const Dock = ({ className, children, magnification = DEFAULT_MAGNIFICATION, distance = DEFAULT_DISTANCE }: DockProps) => {
-  const mouseX = useMotionValue(Infinity);
+  const mouseX = useMotionValue(RESTING_MOUSE_X);
 
   return (
     <DockContext.Provider value={{ mouseX, magnification, distance }}>
       <motion.div
         onMouseMove={(e) => mouseX.set(e.pageX)}
-        onMouseLeave={() => mouseX.set(Infinity)}
+        onMouseLeave={() => mouseX.set(RESTING_MOUSE_X)}
         className={cn("mx-auto w-max h-full flex items-end justify-center overflow-visible rounded-full border", className)}
       >
         {children}
@@ -58,6 +59,10 @@ const DockIcon = ({ className, children }: DockIconProps) => {
   const { mouseX, magnification, distance } = context;
 
   const distanceCalc = useTransform(mouseX, (val: number) => {
+    if (!Number.isFinite(val)) {
+      return RESTING_MOUSE_X;
+    }
+
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });

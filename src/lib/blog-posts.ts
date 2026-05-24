@@ -1008,6 +1008,9 @@ function sanitizeNotionMarkdown(markdown: string) {
   return markdown
     .replace(/\r\n/g, "\n")
     .replace(/\s+\{color="[^"]+"\}/g, "")
+    .replace(/<table\b[^>]*>([\s\S]*?)<\/table>/g, (_match, body: string) =>
+      renderEnhancedMarkdownTable(body)
+    )
     .replace(/<bookmark url="([^"]+)"\s*\/>/g, "[$1]($1)")
     .replace(/<embed url="([^"]+)"\s*\/>/g, "[$1]($1)")
     .replace(/<empty-block\s*\/>/g, "")
@@ -1026,7 +1029,45 @@ function sanitizeNotionMarkdown(markdown: string) {
     .replace(/<mention-user name="([^"]+)"\s*\/>/g, "@$1")
     .replace(/<page url="([^"]+)">([^<]*)<\/page>/g, "[$2]($1)")
     .replace(/<database url="([^"]+)">([^<]*)<\/database>/g, "[$2]($1)")
+    .replace(/([^\n])\n---\n/g, "$1\n\n---\n")
+    .replace(/\n---\n([^\n])/g, "\n---\n\n$1")
     .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function renderEnhancedMarkdownTable(tableBody: string) {
+  const rows = [...tableBody.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/g)]
+    .map((rowMatch) =>
+      [...rowMatch[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/g)].map(
+        (cellMatch) => sanitizeEnhancedMarkdownTableCell(cellMatch[1])
+      )
+    )
+    .filter((row) => row.length > 0);
+
+  if (rows.length === 0) {
+    return "";
+  }
+
+  const columnCount = Math.max(...rows.map((row) => row.length));
+  const normalizedRows = rows.map((row) =>
+    Array.from({ length: columnCount }, (_value, index) => row[index] ?? "")
+  );
+  const [header, ...bodyRows] = normalizedRows;
+  const divider = header.map(() => "---");
+
+  return [
+    `| ${header.join(" | ")} |`,
+    `| ${divider.join(" | ")} |`,
+    ...bodyRows.map((row) => `| ${row.join(" | ")} |`),
+  ].join("\n");
+}
+
+function sanitizeEnhancedMarkdownTableCell(cell: string) {
+  return cell
+    .replace(/<br\s*\/?>/g, " ")
+    .replace(/<\/?[^>]+>/g, "")
+    .replace(/\|/g, "\\|")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
