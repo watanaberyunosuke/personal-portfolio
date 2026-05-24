@@ -1,17 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import BlurFade from "@/components/magicui/blur-fade";
 import { DATA } from "@/data/resume";
 import { Github, ArrowUpRight } from "lucide-react";
-import { useHydrated } from "@/lib/use-hydrated";
 
 export default function GitHubStatus() {
   const username = DATA.contact.social.GitHub.url.split("/").pop();
   const { resolvedTheme } = useTheme();
-  const hydrated = useHydrated();
-  const isDark = hydrated && resolvedTheme === "dark";
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const isDark = mounted && resolvedTheme === "dark";
 
   const heatmapUrl = `https://gh-heat.anishroy.com/api/${username}/svg?theme=green&darkMode=${isDark ? "true" : "false"}`;
 
