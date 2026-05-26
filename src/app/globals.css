@@ -42,39 +42,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@layer components {
-  .recommended-places-map {
-    isolation: isolate;
-    overflow: hidden;
-  }
-
-  .recommended-places-map .leaflet-control-container {
-    font-family: var(--font-sans);
-  }
-
-  .recommended-places-map .leaflet-control-zoom a {
-    border-color: hsl(0 0% 90%);
-    color: hsl(0 0% 9%);
-  }
-
-  .recommended-places-map .leaflet-popup-content-wrapper,
-  .recommended-places-map .leaflet-popup-tip {
-    border: 1px solid hsl(0 0% 90%);
-    box-shadow: 0 16px 48px hsl(0 0% 0% / 16%);
-  }
-
-  .recommended-places-map .leaflet-popup-content {
-    margin: 12px 14px;
-    font-family: var(--font-sans);
-  }
-
-  .recommended-places-map .leaflet-control-attribution {
-    border-top-left-radius: 10px;
-    font-family: var(--font-sans);
-    font-size: 10px;
-  }
-}
-
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
