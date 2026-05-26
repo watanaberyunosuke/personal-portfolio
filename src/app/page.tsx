@@ -13,6 +13,7 @@ import BlogPreview from "@/components/section/blog-preview";
 import GraphPreview from "@/components/section/graph-preview";
 import GitHubStatus from "@/components/section/github-status";
 import Commonplace from "@/components/section/commonplace";
+import RecommendedPlaces from "@/components/section/recommended-places";
 import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import HomepageSideNav from "@/components/homepage-side-nav";
@@ -128,25 +129,34 @@ export default function Page() {
           <GraphPreview />
         </div>
 
-        {/* 5. Commonplace */}
-        <div id="commonplace" className="scroll-mt-24">
-          <Commonplace />
-        </div>
-
-        {/* 6. GitHub Status */}
+        {/* 5. GitHub Status */}
         <div id="github-activity" className="scroll-mt-24">
           <GitHubStatus />
         </div>
 
-        {/* 7. Blog Preview */}
+        {/* 6. Commonplace */}
+        <div id="commonplace" className="scroll-mt-24">
+          <Commonplace />
+        </div>
+
+        {/* 7. Recommended Places */}
+        <SectionCard
+          id="recommended-places"
+          delay={BLUR_FADE_DELAY * 15}
+          className="scroll-mt-24 p-6 md:p-10"
+        >
+          <RecommendedPlaces />
+        </SectionCard>
+
+        {/* 8. Blog Preview */}
         <BlogPreview />
 
-        {/* 8. Projects */}
+        {/* 9. Projects */}
         <SectionCard id="projects" delay={BLUR_FADE_DELAY * 11} className="scroll-mt-24 p-10">
           <ProjectsSection />
         </SectionCard>
 
-        {/* 9. Contact */}
+        {/* 10. Contact */}
         <SectionCard id="contact" delay={BLUR_FADE_DELAY * 18} className="scroll-mt-24 p-10 text-center">
           <ContactSection />
         </SectionCard>
