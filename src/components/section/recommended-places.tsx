@@ -3,20 +3,8 @@
 import { RECOMMENDED_PLACES } from "@/data/recommended-places";
 import { cn } from "@/lib/utils";
 import { ExternalLink, MapPin } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-
-const RecommendedPlacesMap = dynamic(
-  () => import("@/components/section/recommended-places-map"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[420px] w-full items-center justify-center rounded-3xl border bg-muted/40 text-sm font-medium text-muted-foreground md:h-[520px]">
-        Loading map
-      </div>
-    ),
-  }
-);
+import RecommendedPlacesMap from "@/components/section/recommended-places-map";
 
 export default function RecommendedPlaces() {
   const [selectedPlaceId, setSelectedPlaceId] = useState(
@@ -45,11 +33,7 @@ export default function RecommendedPlaces() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <RecommendedPlacesMap
-          places={RECOMMENDED_PLACES}
-          selectedPlaceId={selectedPlace.id}
-          onSelectPlace={setSelectedPlaceId}
-        />
+        <RecommendedPlacesMap place={selectedPlace} />
 
         <div className="flex min-h-0 flex-col gap-4">
           <div className="rounded-3xl border bg-background/70 p-6 shadow-sm">
