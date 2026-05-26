@@ -19,6 +19,7 @@ import {
   Github,
   HomeIcon,
   Mail,
+  MapPinned,
   Network,
   NotebookIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const SECTION_ICONS = {
   experience: BriefcaseBusiness,
   "knowledge-graph": Network,
   commonplace: BookOpen,
+  "recommended-places": MapPinned,
   "github-activity": Github,
   blog: NotebookIcon,
   projects: FolderKanban,
