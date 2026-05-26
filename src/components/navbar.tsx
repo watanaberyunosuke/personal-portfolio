@@ -10,12 +10,37 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { HomeIcon, LayoutGrid, NotebookIcon } from "lucide-react";
+import { HOMEPAGE_SECTIONS } from "@/data/homepage-sections";
+import {
+  BookOpen,
+  BriefcaseBusiness,
+  Code2,
+  FolderKanban,
+  Github,
+  HomeIcon,
+  Mail,
+  Network,
+  NotebookIcon,
+} from "lucide-react";
+
+const SECTION_ICONS = {
+  "tech-stack": Code2,
+  experience: BriefcaseBusiness,
+  "knowledge-graph": Network,
+  commonplace: BookOpen,
+  "github-activity": Github,
+  blog: NotebookIcon,
+  projects: FolderKanban,
+  contact: Mail,
+} as const;
 
 const NAV_ITEMS = [
   { href: "/", icon: HomeIcon, label: "Home" },
-  { href: "/blog", icon: NotebookIcon, label: "Blog" },
-  { href: "/graph", icon: LayoutGrid, label: "Graph" },
+  ...HOMEPAGE_SECTIONS.map((section) => ({
+    href: `/#${section.id}`,
+    icon: SECTION_ICONS[section.id],
+    label: section.shortLabel,
+  })),
 ] as const;
 
 const SOCIAL_ITEMS = [
@@ -33,8 +58,11 @@ const SOCIAL_ITEMS = [
 
 export default function Navbar() {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30">
-      <Dock className="z-50 pointer-events-auto relative h-14 p-2 w-fit mx-auto flex gap-2 border bg-card/90 backdrop-blur-3xl shadow-[0_0_10px_3px] shadow-primary/5">
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 px-4">
+      <Dock
+        magnification={52}
+        className="z-50 pointer-events-auto relative h-14 max-w-full overflow-x-auto p-2 w-fit mx-auto flex gap-2 border bg-card/90 backdrop-blur-3xl shadow-[0_0_10px_3px] shadow-primary/5"
+      >
         {NAV_ITEMS.map((item) => {
           const isExternal = item.href.startsWith("http");
           const IconComponent = item.icon;
@@ -65,9 +93,10 @@ export default function Navbar() {
         })}
         <Separator
           orientation="vertical"
-          className="h-2/3 m-auto w-px bg-border"
+          className="hidden h-2/3 m-auto w-px bg-border md:block"
         />
-        {SOCIAL_ITEMS.map((social) => {
+        <div className="hidden items-end gap-2 md:flex">
+          {SOCIAL_ITEMS.map((social) => {
             const isExternal = social.href.startsWith("http");
             const IconComponent = social.icon;
             return (
@@ -94,6 +123,7 @@ export default function Navbar() {
               </Tooltip>
             );
           })}
+        </div>
         <Separator
           orientation="vertical"
           className="h-2/3 m-auto w-px bg-border"
