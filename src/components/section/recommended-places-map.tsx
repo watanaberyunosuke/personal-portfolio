@@ -1,4 +1,4 @@
-import type { RecommendedPlace } from "@/data/recommended-places";
+import type { RecommendedPlace } from "@/types/recommended-place";
 
 interface RecommendedPlacesMapProps {
   readonly place: RecommendedPlace;
@@ -7,8 +7,9 @@ interface RecommendedPlacesMapProps {
 export default function RecommendedPlacesMap({
   place,
 }: RecommendedPlacesMapProps) {
-  const [latitude, longitude] = place.coordinates;
-  const query = encodeURIComponent(`${latitude},${longitude}`);
+  const query = encodeURIComponent(
+    place.coordinates ? place.coordinates.join(",") : place.mapQuery
+  );
   const mapSrc = `https://www.google.com/maps?q=${query}&z=15&output=embed`;
 
   return (

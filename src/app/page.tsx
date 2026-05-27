@@ -17,10 +17,15 @@ import RecommendedPlaces from "@/components/section/recommended-places";
 import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import HomepageSideNav from "@/components/homepage-side-nav";
+import { getRecommendedPlaces } from "@/lib/recommended-places";
 
 const BLUR_FADE_DELAY = 0.04;
 
-export default function Page() {
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const recommendedPlaces = await getRecommendedPlaces();
+
   return (
     <div className="relative left-1/2 grid w-[min(100vw,1760px)] -translate-x-1/2 gap-8 px-4 sm:px-6 lg:px-8 xl:grid-cols-[12rem_minmax(0,1fr)] 2xl:px-12">
       <HomepageSideNav />
@@ -139,13 +144,12 @@ export default function Page() {
           <Commonplace />
         </div>
 
-        {/* 7. Recommended Places */}
         <SectionCard
           id="recommended-places"
           delay={BLUR_FADE_DELAY * 15}
           className="scroll-mt-24 p-6 md:p-10"
         >
-          <RecommendedPlaces />
+          <RecommendedPlaces places={recommendedPlaces} />
         </SectionCard>
 
         {/* 8. Blog Preview */}
