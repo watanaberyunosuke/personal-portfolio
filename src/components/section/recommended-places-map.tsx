@@ -4,7 +4,9 @@ interface RecommendedPlacesMapProps {
   readonly place: RecommendedPlace;
 }
 
-export default function RecommendedPlacesMap({ place }: RecommendedPlacesMapProps) {
+export default function RecommendedPlacesMap({
+  place,
+}: RecommendedPlacesMapProps) {
   const query = encodeURIComponent(
     place.coordinates ? place.coordinates.join(",") : place.mapQuery
   );
