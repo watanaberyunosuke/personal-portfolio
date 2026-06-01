@@ -104,6 +104,46 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
             </div>
           ) : null}
 
+          <div
+            className="grid gap-2 rounded-2xl border bg-background/60 p-2 sm:grid-cols-2 lg:grid-cols-3"
+            aria-label="Place views"
+          >
+            {countryPlaces.map((place) => {
+              const isSelected = place.id === selectedPlace.id;
+
+              return (
+                <button
+                  key={place.id}
+                  type="button"
+                  onClick={() => setSelectedPlaceId(place.id)}
+                  className={cn(
+                    "rounded-xl border px-4 py-3 text-left transition-all duration-200",
+                    "hover:border-primary/30 hover:bg-background hover:shadow-sm",
+                    isSelected
+                      ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/10"
+                      : "border-transparent text-muted-foreground"
+                  )}
+                  aria-pressed={isSelected}
+                >
+                  <div className="truncate text-sm font-semibold">
+                    {place.name}
+                  </div>
+                  <div
+                    className={cn(
+                      "mt-1 truncate text-xs",
+                      isSelected
+                        ? "text-primary-foreground/75"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {place.category}
+                    {place.locationLabel ? ` - ${place.locationLabel}` : ""}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
             <RecommendedPlacesMap place={selectedPlace} />
 
@@ -122,7 +162,7 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
                         {selectedPlace.name}
                       </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {selectedPlace.city}, {selectedPlace.country}
+                        {selectedPlace.locationLabel}
                       </p>
                     </div>
                     {selectedPlace.summary ? (
@@ -146,55 +186,6 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
                     </a>
                   </div>
                 </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                {countryPlaces.map((place) => {
-                  const isSelected = place.id === selectedPlace.id;
-
-                  return (
-                    <button
-                      key={place.id}
-                      type="button"
-                      onClick={() => setSelectedPlaceId(place.id)}
-                      className={cn(
-                        "rounded-2xl border p-4 text-left transition-all duration-200",
-                        "hover:border-primary/30 hover:bg-background hover:shadow-sm",
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/10"
-                          : "border-border bg-background/60"
-                      )}
-                      aria-pressed={isSelected}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold">
-                            {place.name}
-                          </div>
-                          <div
-                            className={cn(
-                              "mt-1 text-xs",
-                              isSelected
-                                ? "text-primary-foreground/75"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {place.category} - {place.city}
-                          </div>
-                        </div>
-                        <span
-                          className={cn(
-                            "mt-1 size-2 flex-none rounded-full",
-                            isSelected
-                              ? "bg-primary-foreground"
-                              : "bg-primary/40"
-                          )}
-                          aria-hidden
-                        />
-                      </div>
-                    </button>
-                  );
-                })}
               </div>
             </div>
           </div>
