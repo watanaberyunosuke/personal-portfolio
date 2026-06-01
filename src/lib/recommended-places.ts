@@ -82,10 +82,10 @@ const PROPERTY_ALIASES = {
   place: splitAliases(process.env.NOTION_PLACES_PLACE_PROPERTY, [
     "Location Query",
     "Map Query",
-    "Location",
     "Address",
-    "Area",
     "Place",
+    "Location",
+    "Area",
   ]),
   latitude: splitAliases(process.env.NOTION_PLACES_LATITUDE_PROPERTY, [
     "Latitude",

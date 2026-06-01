@@ -66,7 +66,7 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
         </div>
       ) : (
         <>
-          {countryViews.length > 1 ? (
+          {countryViews.length > 0 ? (
             <div
               className="flex flex-wrap gap-2 rounded-2xl border bg-background/60 p-2"
               aria-label="Country views"
