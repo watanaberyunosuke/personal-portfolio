@@ -3,6 +3,7 @@ import { DATA } from "@/data/resume";
 import { getPostBySlug } from "@/lib/blog-posts";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const alt = "Blog Post";
 export const size = {
