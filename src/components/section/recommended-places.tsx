@@ -136,7 +136,7 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
                       </p>
                     ) : null}
                     <a
-                      href={selectedPlace.href}
+                      href={selectedPlace.mapHref}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/75"

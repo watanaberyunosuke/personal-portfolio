@@ -80,9 +80,12 @@ const PROPERTY_ALIASES = {
     "Country",
   ]),
   place: splitAliases(process.env.NOTION_PLACES_PLACE_PROPERTY, [
-    "Place",
-    "Address",
+    "Location Query",
+    "Map Query",
     "Location",
+    "Address",
+    "Area",
+    "Place",
   ]),
   latitude: splitAliases(process.env.NOTION_PLACES_LATITUDE_PROPERTY, [
     "Latitude",
@@ -98,11 +101,6 @@ const PROPERTY_ALIASES = {
     "Description",
   ]),
   tip: splitAliases(process.env.NOTION_PLACES_TIP_PROPERTY, ["Tip", "Note"]),
-  href: splitAliases(process.env.NOTION_PLACES_URL_PROPERTY, [
-    "Website",
-    "URL",
-    "Link",
-  ]),
   published: splitAliases(process.env.NOTION_PLACES_PUBLISHED_PROPERTY, [
     "Published",
     "Live",
@@ -206,33 +204,30 @@ function buildRecommendedPlace(page: NotionPage): RecommendedPlace | null {
   const latitude = getNumberProperty(properties, PROPERTY_ALIASES.latitude);
   const longitude = getNumberProperty(properties, PROPERTY_ALIASES.longitude);
   const coordinates =
-    typeof notionPlace?.lat === "number" && typeof notionPlace.lon === "number"
-      ? ([notionPlace.lat, notionPlace.lon] as [number, number])
-      : latitude !== null && longitude !== null
+    latitude !== null && longitude !== null
       ? ([latitude, longitude] as [number, number])
       : undefined;
-  const mapQuery = placeText;
-  const href =
-    getUrlProperty(properties, PROPERTY_ALIASES.href) ??
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      mapQuery
-    )}`;
+  const country =
+    getTextProperty(properties, PROPERTY_ALIASES.country) ??
+    inferCountryFromPlace(placeText) ??
+    city;
+  const mapQuery = buildMapQuery({ name, placeText, city, country });
+  const mapHref = buildGoogleMapsSearchUrl(
+    coordinates ? coordinates.join(",") : mapQuery
+  );
 
   return {
     id: slugify(name) || normalizeNotionId(page.id),
     name,
     city,
-    country:
-      getTextProperty(properties, PROPERTY_ALIASES.country) ??
-      inferCountryFromPlace(placeText) ??
-      city,
+    country,
     category:
       getTextProperty(properties, PROPERTY_ALIASES.category) ?? "Place",
     mapQuery,
     coordinates,
     summary: getTextProperty(properties, PROPERTY_ALIASES.summary) ?? "",
     tip: getTextProperty(properties, PROPERTY_ALIASES.tip) ?? "",
-    href,
+    mapHref,
   };
 }
 
@@ -291,14 +286,6 @@ function getTextProperty(
     property.url ??
     null
   );
-}
-
-function getUrlProperty(
-  properties: Record<string, NotionPropertyValue>,
-  aliases: readonly string[]
-) {
-  const property = getProperty(properties, aliases);
-  return property?.url ?? getTextProperty(properties, aliases);
 }
 
 function getNumberProperty(
@@ -391,6 +378,47 @@ function inferCountryFromPlace(placeText: string) {
     .filter(Boolean);
 
   return parts.length > 1 ? parts[parts.length - 1] : null;
+}
+
+function buildMapQuery({
+  name,
+  placeText,
+  city,
+  country,
+}: {
+  name: string;
+  placeText: string;
+  city: string;
+  country: string;
+}) {
+  return uniqueTextParts([name, placeText, city, country]).join(", ");
+}
+
+function uniqueTextParts(parts: readonly string[]) {
+  const seen = new Set<string>();
+
+  return parts
+    .map((part) => part.trim())
+    .filter((part) => {
+      if (!part) {
+        return false;
+      }
+
+      const normalized = part.toLowerCase();
+
+      if (seen.has(normalized)) {
+        return false;
+      }
+
+      seen.add(normalized);
+      return true;
+    });
+}
+
+function buildGoogleMapsSearchUrl(query: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    query
+  )}`;
 }
 
 async function notionRequest(

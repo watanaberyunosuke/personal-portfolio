@@ -8,5 +8,5 @@ export type RecommendedPlace = {
   readonly coordinates?: [number, number];
   readonly summary: string;
   readonly tip: string;
-  readonly href: string;
+  readonly mapHref: string;
 };
