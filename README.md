@@ -38,6 +38,24 @@ Recommended Notion properties:
 
 If `Published` is missing, the sync script imports every page in the configured Notion data source. If `Tags` is missing, synced posts default to a single `Notion` tag.
 
+## Recommended Places Setup
+
+The places map keeps map-link generation in code, so the Notion database does not need a `Map Link` formula or URL property.
+
+Recommended Notion properties:
+
+- `Name`
+- `Location Query`, `Address`, `Location`, `Area`, or `Place`
+- `City`
+- `Country`
+- `Category`
+- `Summary`
+- `Tip`
+- `Published`
+- `Sort`
+
+For approximate locations, prefer a plain text `Location Query` value like `Fitzroy, Melbourne` or `Melbourne, Australia`. The app combines `Name`, `Location Query`, `City`, and `Country` to build the Google Maps link and embed query.
+
 # License
 
 Licensed under the [MIT license](https://github.com/dillionverma/portfolio/blob/main/LICENSE.md).

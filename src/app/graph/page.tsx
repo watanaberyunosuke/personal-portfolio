@@ -7,6 +7,8 @@ export const metadata = {
   description: "An interactive visualisation of blog posts and their MDX tags.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function GraphPage() {
   const data = generateGraphData(await getSortedPosts());
 

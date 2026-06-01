@@ -80,9 +80,12 @@ const PROPERTY_ALIASES = {
     "Country",
   ]),
   place: splitAliases(process.env.NOTION_PLACES_PLACE_PROPERTY, [
-    "Place",
+    "Location Query",
+    "Map Query",
     "Address",
+    "Place",
     "Location",
+    "Area",
   ]),
   latitude: splitAliases(process.env.NOTION_PLACES_LATITUDE_PROPERTY, [
     "Latitude",
@@ -98,11 +101,6 @@ const PROPERTY_ALIASES = {
     "Description",
   ]),
   tip: splitAliases(process.env.NOTION_PLACES_TIP_PROPERTY, ["Tip", "Note"]),
-  href: splitAliases(process.env.NOTION_PLACES_URL_PROPERTY, [
-    "Website",
-    "URL",
-    "Link",
-  ]),
   published: splitAliases(process.env.NOTION_PLACES_PUBLISHED_PROPERTY, [
     "Published",
     "Live",
@@ -180,8 +178,28 @@ async function queryPlacesPages(dataSourceId: string, token: string) {
   } while (startCursor);
 
   return pages
-    .filter((page) => !page.in_trash && isPublishedPlace(page))
-    .sort((a, b) => getSortValue(a) - getSortValue(b));
+    .map((page, index) => ({
+      index,
+      page,
+      sortValue: getSortValue(page),
+    }))
+    .filter(({ page }) => !page.in_trash && isPublishedPlace(page))
+    .sort((a, b) => {
+      if (a.sortValue !== null && b.sortValue !== null) {
+        return a.sortValue - b.sortValue;
+      }
+
+      if (a.sortValue !== null) {
+        return -1;
+      }
+
+      if (b.sortValue !== null) {
+        return 1;
+      }
+
+      return b.index - a.index;
+    })
+    .map(({ page }) => page);
 }
 
 function buildRecommendedPlace(page: NotionPage): RecommendedPlace | null {
@@ -194,11 +212,11 @@ function buildRecommendedPlace(page: NotionPage): RecommendedPlace | null {
   const name = getTextProperty(properties, PROPERTY_ALIASES.name);
   const notionPlace = getPlaceProperty(properties, PROPERTY_ALIASES.place);
   const placeText =
+    getTextProperty(properties, PROPERTY_ALIASES.place) ??
     notionPlace?.address ??
-    notionPlace?.name ??
-    getTextProperty(properties, PROPERTY_ALIASES.place);
+    notionPlace?.name;
 
-  if (!name || !placeText) {
+  if (!name) {
     return null;
   }
 
@@ -206,33 +224,42 @@ function buildRecommendedPlace(page: NotionPage): RecommendedPlace | null {
   const latitude = getNumberProperty(properties, PROPERTY_ALIASES.latitude);
   const longitude = getNumberProperty(properties, PROPERTY_ALIASES.longitude);
   const coordinates =
-    typeof notionPlace?.lat === "number" && typeof notionPlace.lon === "number"
-      ? ([notionPlace.lat, notionPlace.lon] as [number, number])
-      : latitude !== null && longitude !== null
+    latitude !== null && longitude !== null
       ? ([latitude, longitude] as [number, number])
       : undefined;
-  const mapQuery = placeText;
-  const href =
-    getUrlProperty(properties, PROPERTY_ALIASES.href) ??
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      mapQuery
-    )}`;
+  const country =
+    (getTextProperty(properties, PROPERTY_ALIASES.country) ??
+      (placeText ? inferCountryFromPlace(placeText) : null) ??
+      city) ||
+    "Other";
+  const locationLabel = buildLocationLabel({
+    placeText: placeText ?? "",
+    city,
+    country,
+  });
+  const mapQuery = buildMapQuery({
+    name,
+    placeText: placeText ?? "",
+    city,
+    country,
+  });
+  const mapHref = buildGoogleMapsSearchUrl(
+    coordinates ? coordinates.join(",") : mapQuery
+  );
 
   return {
     id: slugify(name) || normalizeNotionId(page.id),
     name,
     city,
-    country:
-      getTextProperty(properties, PROPERTY_ALIASES.country) ??
-      inferCountryFromPlace(placeText) ??
-      city,
+    country,
     category:
       getTextProperty(properties, PROPERTY_ALIASES.category) ?? "Place",
+    locationLabel,
     mapQuery,
     coordinates,
     summary: getTextProperty(properties, PROPERTY_ALIASES.summary) ?? "",
     tip: getTextProperty(properties, PROPERTY_ALIASES.tip) ?? "",
-    href,
+    mapHref,
   };
 }
 
@@ -263,22 +290,31 @@ function isPublishedPlace(page: NotionPage) {
 }
 
 function getSortValue(page: NotionPage) {
-  return getNumberProperty(
-    page.properties ?? {},
-    PROPERTY_ALIASES.sort
-  ) ?? Number.MAX_SAFE_INTEGER;
+  return getNumberProperty(page.properties ?? {}, PROPERTY_ALIASES.sort);
 }
 
 function getTextProperty(
   properties: Record<string, NotionPropertyValue>,
   aliases: readonly string[]
 ) {
-  const property = getProperty(properties, aliases);
+  for (const alias of aliases) {
+    const property = properties[alias];
 
-  if (!property) {
-    return null;
+    if (!property) {
+      continue;
+    }
+
+    const text = propertyToPlainText(property);
+
+    if (text) {
+      return text;
+    }
   }
 
+  return null;
+}
+
+function propertyToPlainText(property: NotionPropertyValue) {
   return (
     richTextToPlainText(property.title) ??
     richTextToPlainText(property.rich_text) ??
@@ -291,14 +327,6 @@ function getTextProperty(
     property.url ??
     null
   );
-}
-
-function getUrlProperty(
-  properties: Record<string, NotionPropertyValue>,
-  aliases: readonly string[]
-) {
-  const property = getProperty(properties, aliases);
-  return property?.url ?? getTextProperty(properties, aliases);
 }
 
 function getNumberProperty(
@@ -364,8 +392,15 @@ function getPlaceProperty(
   properties: Record<string, NotionPropertyValue>,
   aliases: readonly string[]
 ) {
-  const property = getProperty(properties, aliases);
-  return property?.place ?? null;
+  for (const alias of aliases) {
+    const property = properties[alias];
+
+    if (property?.place) {
+      return property.place;
+    }
+  }
+
+  return null;
 }
 
 function formulaValueToString(formula?: NotionFormulaValue | null) {
@@ -391,6 +426,85 @@ function inferCountryFromPlace(placeText: string) {
     .filter(Boolean);
 
   return parts.length > 1 ? parts[parts.length - 1] : null;
+}
+
+function buildMapQuery({
+  name,
+  placeText,
+  city,
+  country,
+}: {
+  name: string;
+  placeText: string;
+  city: string;
+  country: string;
+}) {
+  if (placeText) {
+    return appendPartIfMissing(appendPartIfMissing(placeText, city), country);
+  }
+
+  return uniqueTextParts([name, city, country]).join(", ");
+}
+
+function buildLocationLabel({
+  placeText,
+  city,
+  country,
+}: {
+  placeText: string;
+  city: string;
+  country: string;
+}) {
+  if (city) {
+    return uniqueTextParts([city, country]).join(", ");
+  }
+
+  if (placeText) {
+    return appendPartIfMissing(placeText, country);
+  }
+
+  return country;
+}
+
+function appendPartIfMissing(value: string, part: string) {
+  const trimmedValue = value.trim();
+  const trimmedPart = part.trim();
+
+  if (
+    !trimmedPart ||
+    trimmedValue.toLowerCase().includes(trimmedPart.toLowerCase())
+  ) {
+    return trimmedValue;
+  }
+
+  return `${trimmedValue}, ${trimmedPart}`;
+}
+
+function uniqueTextParts(parts: readonly string[]) {
+  const seen = new Set<string>();
+
+  return parts
+    .map((part) => part.trim())
+    .filter((part) => {
+      if (!part) {
+        return false;
+      }
+
+      const normalized = part.toLowerCase();
+
+      if (seen.has(normalized)) {
+        return false;
+      }
+
+      seen.add(normalized);
+      return true;
+    });
+}
+
+function buildGoogleMapsSearchUrl(query: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    query
+  )}`;
 }
 
 async function notionRequest(

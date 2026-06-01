@@ -10,6 +10,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+export const dynamic = "force-dynamic";
+
 function resolveImageUrl(image?: string) {
   if (!image) {
     return undefined;
