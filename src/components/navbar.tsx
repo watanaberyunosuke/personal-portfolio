@@ -23,6 +23,7 @@ import {
   Network,
   NotebookIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 const SECTION_ICONS = {
   "tech-stack": Code2,
@@ -72,15 +73,23 @@ export default function Navbar() {
           return (
             <Tooltip key={item.href}>
               <TooltipTrigger asChild>
-                <a
-                  href={item.href}
-                  target={isExternal ? "_blank" : undefined}
-                  rel={isExternal ? "noopener noreferrer" : undefined}
-                >
-                  <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
-                    <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
-                  </DockIcon>
-                </a>
+                {isExternal ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
+                      <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
+                    </DockIcon>
+                  </a>
+                ) : (
+                  <Link href={item.href}>
+                    <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
+                      <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
+                    </DockIcon>
+                  </Link>
+                )}
               </TooltipTrigger>
               <TooltipContent
                 side="top"
@@ -99,15 +108,14 @@ export default function Navbar() {
         />
         <div className="hidden items-end gap-2 md:flex">
           {SOCIAL_ITEMS.map((social) => {
-            const isExternal = social.href.startsWith("http");
             const IconComponent = social.icon;
             return (
               <Tooltip key={social.href}>
                 <TooltipTrigger asChild>
                   <a
                     href={social.href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
                       <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
