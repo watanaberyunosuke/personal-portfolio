@@ -221,6 +221,8 @@ export type BlogPost = LocalBlogPost | NotionBlogPost;
 
 const NOTION_API_BASE_URL = "https://api.notion.com/v1";
 const DEFAULT_NOTION_VERSION = process.env.NOTION_API_VERSION ?? "2026-03-11";
+const EMPTY_NOTION_PARAGRAPH_MARKDOWN = "&nbsp;";
+const NOTION_TABLE_OF_CONTENTS_PLACEHOLDER = "[[notion-table-of-contents]]";
 
 const PROPERTY_ALIASES = {
   title: splitAliases(process.env.NOTION_BLOG_TITLE_PROPERTY, ["Title", "Name"]),
@@ -331,8 +333,8 @@ const getNotionPostMarkdown = cache(async (pageId: string): Promise<string> => {
 
   try {
     const rawMarkdown =
-      (await readPageMarkdown({ token, pageId })) ||
-      (await readMarkdownFromBlocks({ token, blockId: pageId }));
+      (await readMarkdownFromBlocks({ token, blockId: pageId })) ||
+      (await readPageMarkdown({ token, pageId }));
 
     return sanitizeNotionMarkdown(rawMarkdown);
   } catch (error) {
@@ -562,11 +564,39 @@ async function fetchBlockTree({
 }
 
 function renderBlocks(blocks: NotionBlock[], depth = 0): string {
-  return blocks
-    .map((block) => renderBlock(block, depth))
-    .filter(Boolean)
-    .join("\n\n")
+  const renderedBlocks = blocks
+    .map((block) => ({
+      markdown: renderBlock(block, depth),
+      type: block.type,
+    }))
+    .filter((block) => Boolean(block.markdown));
+
+  return renderedBlocks
+    .map((block, index) => {
+      const nextBlock = renderedBlocks[index + 1];
+
+      if (!nextBlock) {
+        return block.markdown;
+      }
+
+      return `${block.markdown}${getBlockSeparator(block.type, nextBlock.type)}`;
+    })
+    .join("")
     .replace(/\n{3,}/g, "\n\n");
+}
+
+function getBlockSeparator(currentType: string, nextType: string) {
+  return isListBlockType(currentType) && isListBlockType(nextType)
+    ? "\n"
+    : "\n\n";
+}
+
+function isListBlockType(type: string) {
+  return (
+    type === "bulleted_list_item" ||
+    type === "numbered_list_item" ||
+    type === "to_do"
+  );
 }
 
 function renderBlock(block: NotionBlock, depth = 0): string {
@@ -576,6 +606,10 @@ function renderBlock(block: NotionBlock, depth = 0): string {
 
   switch (block.type) {
     case "paragraph":
+      if (!richText && children.length === 0) {
+        return EMPTY_NOTION_PARAGRAPH_MARKDOWN;
+      }
+
       return joinBlockWithChildren(richText, children, depth);
     case "heading_1":
       return `# ${richText}`;
@@ -621,6 +655,8 @@ function renderBlock(block: NotionBlock, depth = 0): string {
       return typeData.url ? `[${typeData.url}](${typeData.url})` : "";
     case "equation":
       return typeData.expression ? `$$${typeData.expression}$$` : "";
+    case "table_of_contents":
+      return NOTION_TABLE_OF_CONTENTS_PLACEHOLDER;
     case "table":
       return renderTable(children);
     case "toggle": {
@@ -712,9 +748,9 @@ function joinBlockWithChildren(
 }
 
 function richTextToMarkdown(richText: NotionRichTextItem[]) {
-  return richText
+  const markdown = richText
     .map((item) => {
-      let text = item.plain_text ?? "";
+      let text = normalizeNotionLineBreaks(item.plain_text ?? "");
       const link = item.href ?? item.text?.link?.url;
 
       if (item.annotations?.code) {
@@ -733,10 +769,36 @@ function richTextToMarkdown(richText: NotionRichTextItem[]) {
       return link ? `[${text}](${link})` : text;
     })
     .join("");
+
+  return applyMarkdownHardBreaks(markdown);
 }
 
 function richTextToPlainText(richText: NotionRichTextItem[]) {
-  return richText.map((item) => item.plain_text ?? "").join("");
+  return richText
+    .map((item) => normalizeNotionLineBreaks(item.plain_text ?? ""))
+    .join("");
+}
+
+function normalizeNotionLineBreaks(text: string) {
+  return text.replace(/\r\n?/g, "\n");
+}
+
+function applyMarkdownHardBreaks(markdown: string) {
+  const lines = markdown.split("\n");
+
+  return lines
+    .map((line, index) => {
+      if (
+        index === lines.length - 1 ||
+        line.trim() === "" ||
+        line.endsWith("  ")
+      ) {
+        return line;
+      }
+
+      return `${line}  `;
+    })
+    .join("\n");
 }
 
 function readStringProperty(
@@ -1005,15 +1067,22 @@ function extractMarkdownString(payload: unknown) {
 }
 
 function sanitizeNotionMarkdown(markdown: string) {
-  return markdown
-    .replace(/\r\n/g, "\n")
+  const sanitized = markdown
+    .replace(/\r\n?/g, "\n")
     .replace(/\s+\{color="[^"]+"\}/g, "")
     .replace(/<table\b[^>]*>([\s\S]*?)<\/table>/g, (_match, body: string) =>
       renderEnhancedMarkdownTable(body)
     )
     .replace(/<bookmark url="([^"]+)"\s*\/>/g, "[$1]($1)")
     .replace(/<embed url="([^"]+)"\s*\/>/g, "[$1]($1)")
-    .replace(/<empty-block\s*\/>/g, "")
+    .replace(
+      /<table_of_contents\b[^>]*\/>/g,
+      `\n\n${NOTION_TABLE_OF_CONTENTS_PLACEHOLDER}\n\n`
+    )
+    .replace(
+      /<empty-block\s*\/>/g,
+      `\n\n${EMPTY_NOTION_PARAGRAPH_MARKDOWN}\n\n`
+    )
     .replace(
       /<file url="([^"]+)"(?: alt="([^"]*)")?\s*\/>/g,
       (_match, url: string, alt: string) => `[${alt || "file"}](${url})`
@@ -1033,6 +1102,211 @@ function sanitizeNotionMarkdown(markdown: string) {
     .replace(/\n---\n([^\n])/g, "\n---\n\n$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+
+  const normalized = normalizeNotionMarkdownBlockBoundaries(
+    trimBoundaryEmptyNotionParagraphs(sanitized)
+  );
+
+  return renderNotionTableOfContents(preserveNotionSoftLineBreaks(normalized));
+}
+
+function trimBoundaryEmptyNotionParagraphs(markdown: string) {
+  const lines = markdown.split("\n");
+
+  while (lines[0]?.trim() === EMPTY_NOTION_PARAGRAPH_MARKDOWN) {
+    lines.shift();
+  }
+
+  while (lines.at(-1)?.trim() === EMPTY_NOTION_PARAGRAPH_MARKDOWN) {
+    lines.pop();
+  }
+
+  return lines.join("\n").trim();
+}
+
+function normalizeNotionMarkdownBlockBoundaries(markdown: string) {
+  return markdown
+    .split(/(```[\s\S]*?```)/g)
+    .map((segment) => {
+      if (segment.startsWith("```")) {
+        return segment;
+      }
+
+      const lines = segment.split("\n");
+      const normalizedLines: string[] = [];
+
+      for (const line of lines) {
+        const previousLine = normalizedLines.at(-1) ?? "";
+
+        if (shouldSeparateNotionMarkdownLines(previousLine, line)) {
+          normalizedLines.push("");
+        }
+
+        normalizedLines.push(line);
+      }
+
+      return normalizedLines.join("\n").replace(/\n{3,}/g, "\n\n");
+    })
+    .join("");
+}
+
+function shouldSeparateNotionMarkdownLines(previousLine: string, line: string) {
+  const previous = previousLine.trim();
+  const current = line.trim();
+
+  if (!previous || !current) {
+    return false;
+  }
+
+  if (isMarkdownTableLine(previous) && isMarkdownTableLine(current)) {
+    return false;
+  }
+
+  if (isMarkdownListLine(previous) && isMarkdownListLine(current)) {
+    return false;
+  }
+
+  if (isMarkdownListLine(previous) && !isIndentedMarkdownContinuation(current)) {
+    return true;
+  }
+
+  if (!isMarkdownListLine(previous) && isMarkdownListLine(current)) {
+    return true;
+  }
+
+  if (isStandaloneMarkdownBlock(previous) || isStandaloneMarkdownBlock(current)) {
+    return true;
+  }
+
+  return isPlainNotionMarkdownLine(previous) && isPlainNotionMarkdownLine(current);
+}
+
+function isMarkdownListLine(line: string) {
+  return /^([-*+]|\d+\.)\s+/.test(line);
+}
+
+function isIndentedMarkdownContinuation(line: string) {
+  return /^\s{2,}\S/.test(line);
+}
+
+function isMarkdownTableLine(line: string) {
+  return line.startsWith("|");
+}
+
+function isStandaloneMarkdownBlock(line: string) {
+  return /^(#{1,6}\s|>\s?|---$|\*\*\*$|___$|<\/?[A-Za-z])/.test(line);
+}
+
+function isPlainNotionMarkdownLine(line: string) {
+  return (
+    !isMarkdownListLine(line) &&
+    !isMarkdownTableLine(line) &&
+    !isStandaloneMarkdownBlock(line)
+  );
+}
+
+function renderNotionTableOfContents(markdown: string) {
+  if (!markdown.includes(NOTION_TABLE_OF_CONTENTS_PLACEHOLDER)) {
+    return markdown;
+  }
+
+  const tableOfContents = buildMarkdownTableOfContents(markdown);
+
+  return markdown
+    .split(NOTION_TABLE_OF_CONTENTS_PLACEHOLDER)
+    .join(tableOfContents);
+}
+
+function buildMarkdownTableOfContents(markdown: string) {
+  const headings = markdown
+    .split("\n")
+    .map((line) => line.match(/^(#{1,6})\s+(.+)$/))
+    .filter((match): match is RegExpMatchArray => Boolean(match))
+    .map((match) => ({
+      level: match[1].length,
+      text: markdownHeadingToPlainText(match[2]),
+    }))
+    .filter(
+      ({ text }) =>
+        text &&
+        text.toLowerCase() !== "table of contents" &&
+        text !== NOTION_TABLE_OF_CONTENTS_PLACEHOLDER
+    );
+
+  if (headings.length === 0) {
+    return "";
+  }
+
+  const minLevel = Math.min(...headings.map((heading) => heading.level));
+
+  return headings
+    .map(({ level, text }) => {
+      const indent = "  ".repeat(Math.max(0, level - minLevel));
+
+      return `${indent}- [${escapeMarkdownLinkText(text)}](#${slugifyHeading(text)})`;
+    })
+    .join("\n");
+}
+
+function markdownHeadingToPlainText(markdown: string) {
+  return markdown
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_~]/g, "")
+    .trim();
+}
+
+function escapeMarkdownLinkText(text: string) {
+  return text.replace(/[\\[\]]/g, "\\$&");
+}
+
+function slugifyHeading(text: string) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/&[a-z0-9#]+;/gi, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function preserveNotionSoftLineBreaks(markdown: string) {
+  return markdown
+    .split(/(```[\s\S]*?```)/g)
+    .map((segment) => {
+      if (segment.startsWith("```")) {
+        return segment;
+      }
+
+      return segment
+        .split(/(\n{2,})/g)
+        .map((chunk) => {
+          if (
+            !chunk.includes("\n") ||
+            /^\n{2,}$/.test(chunk) ||
+            isStructuredMarkdownBlock(chunk)
+          ) {
+            return chunk;
+          }
+
+          return applyMarkdownHardBreaks(chunk);
+        })
+        .join("");
+    })
+    .join("");
+}
+
+function isStructuredMarkdownBlock(markdown: string) {
+  const lines = markdown
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return lines.some((line) =>
+    /^(#{1,6}\s|[-*+]\s|\d+\.\s|>\s?|---$|\*\*\*$|___$|\||<\/?[A-Za-z])/.test(
+      line
+    )
+  );
 }
 
 function renderEnhancedMarkdownTable(tableBody: string) {
@@ -1077,6 +1351,7 @@ function extractSummary(markdown: string) {
     .replace(/<[^>]+>/g, " ")
     .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/&nbsp;/g, " ")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/^>\s?/gm, "")
     .replace(/[*_`~>-]/g, " ")

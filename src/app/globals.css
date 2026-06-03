@@ -173,6 +173,18 @@
     @apply text-primary underline underline-offset-4;
   }
 
+  .prose .notion-empty-paragraph {
+    @apply my-0! h-[1.75em];
+  }
+
+  .prose p:has(+ .notion-empty-paragraph) {
+    @apply mb-0!;
+  }
+
+  .prose .notion-empty-paragraph + p {
+    @apply mt-0!;
+  }
+
   .prose blockquote {
     @apply border-l-4 border-amber-500! pl-4 italic bg-muted/50 p-4 rounded-md rounded-l-none;
   }
