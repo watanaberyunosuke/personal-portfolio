@@ -185,7 +185,7 @@ interface GenericBlockData extends NotionFileLike {
   cells?: NotionRichTextItem[][];
 }
 
-interface BlogPostBase {
+export interface BlogPostBase {
   title: string;
   slug: string;
   publishedAt: string;
@@ -247,7 +247,11 @@ const PROPERTY_ALIASES = {
     "Cover Image",
     "Hero Image",
   ]),
-  tags: splitAliases(process.env.NOTION_BLOG_TAGS_PROPERTY, ["Tags", "Topics"]),
+  tags: splitAliases(process.env.NOTION_BLOG_TAGS_PROPERTY, [
+    "Tags",
+    "Topics",
+    "Labels",
+  ]),
   published: splitAliases(process.env.NOTION_BLOG_PUBLISHED_PROPERTY, [
     "Published",
     "Publish",
@@ -296,6 +300,41 @@ function sortPosts(posts: readonly BlogPostListItem[]) {
 
 export function getPostSlug(post: Pick<BlogPostListItem, "slug">) {
   return post.slug;
+}
+
+/**
+ * Tags to actually render. Notion posts with no tags fall back to `["Notion"]`
+ * (see buildNotionPostSummary) so the graph page always has a node to link to;
+ * that placeholder is meaningless as a label, so drop it here. Matching the
+ * exact fallback shape rather than the string keeps a genuine "Notion" tag
+ * alongside others visible.
+ *
+ * Deduped case-insensitively (first spelling wins) because the rich_text and
+ * formula tag properties are split on delimiters and can repeat a tag.
+ */
+export function getDisplayTags(post: Pick<BlogPostBase, "tags">) {
+  const tags = post.tags ?? [];
+
+  if (tags.length === 1 && tags[0] === "Notion") {
+    return [];
+  }
+
+  const seen = new Set<string>();
+
+  return tags.filter((tag) => {
+    const key = normalizeTag(tag);
+
+    if (!key || seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
+export function normalizeTag(tag: string) {
+  return tag.trim().toLowerCase();
 }
 
 const getNotionPostIndex = cache(async (): Promise<NotionBlogPostSummary[]> => {

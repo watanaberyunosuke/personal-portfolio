@@ -2,8 +2,14 @@ import BlurFade from "@/components/magicui/blur-fade";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { paginate, normalizePage } from "@/lib/pagination";
-import { getSortedPosts, getPostSlug } from "@/lib/blog-posts";
-import { ChevronRight } from "lucide-react";
+import {
+  getSortedPosts,
+  getPostSlug,
+  getDisplayTags,
+  normalizeTag,
+} from "@/lib/blog-posts";
+import { cn } from "@/lib/utils";
+import { ChevronRight, X } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -27,10 +33,19 @@ const BLUR_FADE_DELAY = 0.04;
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; tag?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
-  const sortedPosts = await getSortedPosts();
+  const { page: pageParam, tag: tagParam } = await searchParams;
+  const allPosts = await getSortedPosts();
+
+  const activeTag = tagParam?.trim() || undefined;
+  const sortedPosts = activeTag
+    ? allPosts.filter((post) =>
+        getDisplayTags(post).some(
+          (tag) => normalizeTag(tag) === normalizeTag(activeTag)
+        )
+      )
+    : allPosts;
 
   const totalPages = Math.ceil(sortedPosts.length / PAGE_SIZE);
   const currentPage = normalizePage(pageParam, totalPages);
@@ -39,13 +54,41 @@ export default async function BlogPage({
     pageSize: PAGE_SIZE,
   });
 
+  const buildHref = (page: number) => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", String(page));
+    if (activeTag) params.set("tag", activeTag);
+    const query = params.toString();
+    return query ? `/blog?${query}` : "/blog";
+  };
+
   return (
     <section id="blog">
       <BlurFade delay={BLUR_FADE_DELAY}>
         <h1 className="text-2xl font-semibold tracking-tight mb-2">Blog <span className="ml-1 bg-card border border-border rounded-md px-2 py-1 text-muted-foreground text-sm">{sortedPosts.length} posts</span></h1>
-        <p className="text-sm text-muted-foreground mb-8">
+        <p
+          className={cn(
+            "text-sm text-muted-foreground",
+            activeTag ? "mb-4" : "mb-8"
+          )}
+        >
           My thoughts on software development, life, and more.
         </p>
+        {activeTag && (
+          <div className="flex flex-wrap items-center gap-2 mb-8">
+            <span className="text-sm text-muted-foreground">Filtered by</span>
+            <span className="bg-card border border-border rounded-md px-2 py-1 text-sm">
+              {activeTag}
+            </span>
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors border border-border rounded-md px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <X className="size-3" aria-hidden />
+              Clear
+            </Link>
+          </div>
+        )}
       </BlurFade>
 
       {paginatedPosts.length > 0 ? (
@@ -95,7 +138,7 @@ export default async function BlogPage({
                 <div className="flex gap-2 sm:justify-end">
                   {pagination.hasPreviousPage ? (
                     <Link
-                      href={`/blog?page=${pagination.page - 1}`}
+                      href={buildHref(pagination.page - 1)}
                       className="h-8 w-fit px-2 flex items-center justify-center text-sm border border-border rounded-lg hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       Previous
@@ -107,7 +150,7 @@ export default async function BlogPage({
                   )}
                   {pagination.hasNextPage ? (
                     <Link
-                      href={`/blog?page=${pagination.page + 1}`}
+                      href={buildHref(pagination.page + 1)}
                       className="h-8 w-fit px-2 flex items-center justify-center text-sm border border-border rounded-lg hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       Next
@@ -124,10 +167,24 @@ export default async function BlogPage({
         </>
       ) : (
         <BlurFade delay={BLUR_FADE_DELAY * 2}>
-          <div className="flex flex-col items-center justify-center py-12 px-4 border border-border rounded-xl">
-            <p className="text-muted-foreground text-center">
-              No blog posts yet. Check back soon!
-            </p>
+          <div className="flex flex-col items-center justify-center gap-3 py-12 px-4 border border-border rounded-xl">
+            {activeTag ? (
+              <>
+                <p className="text-muted-foreground text-center">
+                  No posts labelled &ldquo;{activeTag}&rdquo;.
+                </p>
+                <Link
+                  href="/blog"
+                  className="text-sm border border-border rounded-lg px-2 py-1 hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  View all posts
+                </Link>
+              </>
+            ) : (
+              <p className="text-muted-foreground text-center">
+                No blog posts yet. Check back soon!
+              </p>
+            )}
           </div>
         </BlurFade>
       )}

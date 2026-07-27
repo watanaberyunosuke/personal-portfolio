@@ -5,7 +5,13 @@ import { notFound } from "next/navigation";
 import { MDXContent } from "@content-collections/mdx/react";
 import { markdownComponents, mdxComponents } from "@/mdx-components";
 import Link from "next/link";
-import { getPostBySlug, getPostSlug, getSortedPosts } from "@/lib/blog-posts";
+import {
+  getDisplayTags,
+  getPostBySlug,
+  getPostSlug,
+  getSortedPosts,
+} from "@/lib/blog-posts";
+import PostLabels from "@/components/blog/post-labels";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -134,6 +140,7 @@ export default async function Blog({
         <p className="text-sm text-muted-foreground">
           {formatDate(post.publishedAt)}
         </p>
+        <PostLabels tags={getDisplayTags(post)} />
       </div>
       <div className="my-6 flex w-full items-center">
         <div

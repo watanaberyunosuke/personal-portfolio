@@ -1,5 +1,5 @@
 import BlurFade from "@/components/magicui/blur-fade";
-import { getPostSlug, getSortedPosts } from "@/lib/blog-posts";
+import { getDisplayTags, getPostSlug, getSortedPosts } from "@/lib/blog-posts";
 import { ArrowRight, ChevronRight, PenLine } from "lucide-react";
 import Link from "next/link";
 
@@ -72,14 +72,16 @@ export default async function BlogPreview() {
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 <span>{formatPostDate(featuredPost.publishedAt)}</span>
-                {featuredPost.tags.slice(0, 2).map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border bg-card px-3 py-1 normal-case tracking-normal"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {getDisplayTags(featuredPost)
+                  .slice(0, 2)
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border bg-card px-3 py-1 normal-case tracking-normal"
+                    >
+                      {tag}
+                    </span>
+                  ))}
               </div>
               <div className="space-y-3">
                 <h3 className="text-3xl font-bold tracking-tight transition-colors group-hover:text-primary">
