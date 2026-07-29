@@ -3,9 +3,12 @@
 import * as amplitude from "@amplitude/unified";
 
 // Amplitude browser keys are public by design — they ship in the client
-// bundle. This lives in the environment so dev and prod can point at separate
-// Amplitude projects, and so secret scanners don't trip on it.
-const AMPLITUDE_API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
+// bundle. The project key is the default so analytics works out of the box;
+// NEXT_PUBLIC_AMPLITUDE_API_KEY overrides it so dev and prod can point at
+// separate Amplitude projects.
+const AMPLITUDE_API_KEY =
+  process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY ??
+  "8ad8238d6874f5ef00343453d92acb87";
 
 let initialized = false;
 
