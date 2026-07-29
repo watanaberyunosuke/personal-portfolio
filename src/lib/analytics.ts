@@ -18,6 +18,14 @@ const AMPLITUDE_API_KEY =
 const AMPLITUDE_SERVER_ZONE =
   process.env.NEXT_PUBLIC_AMPLITUDE_SERVER_ZONE === "US" ? "US" : "EU";
 
+// Events and remote config are relayed through a same-origin path (see
+// src/app/api/insights/[...path]/route.ts) so content blockers, which match on
+// hostname, do not drop them. Set NEXT_PUBLIC_AMPLITUDE_PROXY=off to talk to
+// Amplitude directly instead — useful when diagnosing whether a delivery
+// problem is the relay or Amplitude itself.
+const USE_PROXY = process.env.NEXT_PUBLIC_AMPLITUDE_PROXY !== "off";
+const PROXY_BASE = "/api/insights";
+
 let initialized = false;
 
 /**
@@ -40,9 +48,21 @@ export function initAnalytics() {
 
   initialized = true;
 
+  // Absolute URLs: the SDK passes serverUrl straight to fetch, and the remote
+  // config client concatenates its serverUrl with the API key.
+  const origin = window.location.origin;
+
   amplitude.initAll(AMPLITUDE_API_KEY, {
+    // Still required even when relaying — it is what routes Session Replay,
+    // which has no configurable endpoint of its own.
     serverZone: AMPLITUDE_SERVER_ZONE,
-    analytics: { autocapture: true },
+    analytics: {
+      autocapture: true,
+      ...(USE_PROXY && {
+        serverUrl: `${origin}${PROXY_BASE}/e`,
+        remoteConfig: { serverUrl: `${origin}${PROXY_BASE}/c` },
+      }),
+    },
     sessionReplay: { sampleRate: 1 },
   });
 }
