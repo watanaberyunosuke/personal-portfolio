@@ -19,6 +19,10 @@ export const dynamic = "force-dynamic";
 const EVENT_UPSTREAM = "https://api.eu.amplitude.com/2/httpapi";
 const CONFIG_UPSTREAM = "https://sr-client-cfg.eu.amplitude.com/config";
 
+// Statuses that must not carry a body — constructing a Response with one
+// throws, which would turn a harmless upstream 304 into a 500.
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
+
 /**
  * Headers Amplitude derives event attributes from. The client IP matters most:
  * without it every event would geolocate to the serverless region rather than
@@ -27,8 +31,10 @@ const CONFIG_UPSTREAM = "https://sr-client-cfg.eu.amplitude.com/config";
 function forwardedHeaders(request: NextRequest): Headers {
   const headers = new Headers({ "Content-Type": "application/json" });
 
-  const clientIp =
+  // Vercel sends a comma-separated chain; the leftmost entry is the client.
+  const forwardedFor =
     request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip");
+  const clientIp = forwardedFor?.split(",")[0]?.trim();
   if (clientIp) {
     headers.set("X-Forwarded-For", clientIp);
   }
@@ -41,37 +47,90 @@ function forwardedHeaders(request: NextRequest): Headers {
   return headers;
 }
 
-function noStore(body: BodyInit | null, status: number): NextResponse {
-  return new NextResponse(body, {
+/** Mirrors an upstream response back to the browser, uncached. */
+async function relayResponse(upstream: Response): Promise<NextResponse> {
+  const headers = new Headers({ "Cache-Control": "no-store" });
+
+  const contentType = upstream.headers.get("content-type");
+  if (contentType) {
+    headers.set("Content-Type", contentType);
+  }
+
+  const body = NULL_BODY_STATUSES.has(upstream.status)
+    ? null
+    : await upstream.text();
+
+  return new NextResponse(body, { status: upstream.status, headers });
+}
+
+function errorResponse(status: number, message: string): NextResponse {
+  return new NextResponse(message, {
     status,
     headers: { "Cache-Control": "no-store" },
   });
 }
 
-/** Event ingestion. The SDK POSTs its batch payload here. */
+async function relay(
+  request: NextRequest,
+  path: string[]
+): Promise<NextResponse> {
+  if (request.method === "POST") {
+    if (path.join("/") !== "e") {
+      return errorResponse(404, "Not found");
+    }
+
+    return relayResponse(
+      await fetch(EVENT_UPSTREAM, {
+        method: "POST",
+        headers: forwardedHeaders(request),
+        body: await request.text(),
+      })
+    );
+  }
+
+  if (path[0] !== "c" || path.length < 2) {
+    return errorResponse(404, "Not found");
+  }
+
+  const apiKey = path.slice(1).map(encodeURIComponent).join("/");
+
+  return relayResponse(
+    await fetch(`${CONFIG_UPSTREAM}/${apiKey}${request.nextUrl.search}`, {
+      method: "GET",
+      headers: forwardedHeaders(request),
+    })
+  );
+}
+
+/**
+ * Every failure path funnels through here so a relay problem shows up as a
+ * retryable 502 with the cause in the function logs, rather than an opaque 500.
+ */
+async function handle(
+  request: NextRequest,
+  params: Promise<{ path: string[] }>
+): Promise<NextResponse> {
+  try {
+    const { path } = await params;
+    return await relay(request, path ?? []);
+  } catch (error) {
+    console.error("[insights] relay failed", {
+      method: request.method,
+      url: request.nextUrl.pathname,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    // Retryable, so the SDK keeps events queued instead of dropping them.
+    return errorResponse(502, "Upstream request failed");
+  }
+}
+
+/** Event ingestion. The SDK POSTs its batch payload to /e. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { path } = await params;
-
-  if (path.join("/") !== "e") {
-    return noStore("Not found", 404);
-  }
-
-  try {
-    const upstream = await fetch(EVENT_UPSTREAM, {
-      method: "POST",
-      headers: forwardedHeaders(request),
-      body: await request.text(),
-    });
-
-    return noStore(await upstream.text(), upstream.status);
-  } catch {
-    // Surface a retryable status so the SDK keeps the events queued rather
-    // than treating them as permanently rejected.
-    return noStore("Upstream request failed", 502);
-  }
+  return handle(request, params);
 }
 
 /** Remote config. The SDK GETs /c/<apiKey>?<params>. */
@@ -79,23 +138,5 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { path } = await params;
-
-  if (path[0] !== "c" || path.length < 2) {
-    return noStore("Not found", 404);
-  }
-
-  const apiKey = path.slice(1).map(encodeURIComponent).join("/");
-  const query = request.nextUrl.search;
-
-  try {
-    const upstream = await fetch(`${CONFIG_UPSTREAM}/${apiKey}${query}`, {
-      method: "GET",
-      headers: forwardedHeaders(request),
-    });
-
-    return noStore(await upstream.text(), upstream.status);
-  } catch {
-    return noStore("Upstream request failed", 502);
-  }
+  return handle(request, params);
 }
