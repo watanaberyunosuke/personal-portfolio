@@ -1,3 +1,7 @@
+import {
+  AMPLITUDE_CONFIG_UPSTREAM,
+  AMPLITUDE_EVENT_UPSTREAM,
+} from "@/lib/amplitude-config";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -15,9 +19,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Relaying is inherently per-request; never cache or prerender it.
 export const dynamic = "force-dynamic";
-
-const EVENT_UPSTREAM = "https://api.eu.amplitude.com/2/httpapi";
-const CONFIG_UPSTREAM = "https://sr-client-cfg.eu.amplitude.com/config";
 
 // Statuses that must not carry a body — constructing a Response with one
 // throws, which would turn a harmless upstream 304 into a 500.
@@ -80,7 +81,7 @@ async function relay(
     }
 
     return relayResponse(
-      await fetch(EVENT_UPSTREAM, {
+      await fetch(AMPLITUDE_EVENT_UPSTREAM, {
         method: "POST",
         headers: forwardedHeaders(request),
         body: await request.text(),
@@ -95,7 +96,7 @@ async function relay(
   const apiKey = path.slice(1).map(encodeURIComponent).join("/");
 
   return relayResponse(
-    await fetch(`${CONFIG_UPSTREAM}/${apiKey}${request.nextUrl.search}`, {
+    await fetch(`${AMPLITUDE_CONFIG_UPSTREAM}/${apiKey}${request.nextUrl.search}`, {
       method: "GET",
       headers: forwardedHeaders(request),
     })
