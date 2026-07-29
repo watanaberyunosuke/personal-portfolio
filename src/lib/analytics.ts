@@ -1,22 +1,12 @@
 "use client";
 
+import {
+  AMPLITUDE_API_KEY,
+  AMPLITUDE_PROXY_BASE,
+  AMPLITUDE_SERVER_ZONE,
+  AMPLITUDE_USE_PROXY,
+} from "@/lib/amplitude-config";
 import * as amplitude from "@amplitude/unified";
-
-// Amplitude browser keys are public by design — they ship in the client
-// bundle. The project key is the default so analytics works out of the box;
-// NEXT_PUBLIC_AMPLITUDE_API_KEY overrides it so dev and prod can point at
-// separate Amplitude projects.
-const AMPLITUDE_API_KEY =
-  process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY ??
-  "8ad8238d6874f5ef00343453d92acb87";
-
-// The Amplitude project lives in the EU data region, so events must go to the
-// EU endpoint. This is not optional: the SDK defaults to 'US' and posts to
-// api2.amplitude.com, where events for an EU project are accepted and then
-// silently discarded — no error surfaces client-side, the data simply never
-// appears. Override only when pointing at a project in another region.
-const AMPLITUDE_SERVER_ZONE =
-  process.env.NEXT_PUBLIC_AMPLITUDE_SERVER_ZONE === "US" ? "US" : "EU";
 
 let initialized = false;
 
@@ -40,9 +30,21 @@ export function initAnalytics() {
 
   initialized = true;
 
+  // Absolute URLs: the SDK passes serverUrl straight to fetch, and the remote
+  // config client concatenates its serverUrl with the API key.
+  const origin = window.location.origin;
+
   amplitude.initAll(AMPLITUDE_API_KEY, {
+    // Still required even when relaying — it is what routes Session Replay,
+    // which has no configurable endpoint of its own.
     serverZone: AMPLITUDE_SERVER_ZONE,
-    analytics: { autocapture: true },
+    analytics: {
+      autocapture: true,
+      ...(AMPLITUDE_USE_PROXY && {
+        serverUrl: `${origin}${AMPLITUDE_PROXY_BASE}/e`,
+        remoteConfig: { serverUrl: `${origin}${AMPLITUDE_PROXY_BASE}/c` },
+      }),
+    },
     sessionReplay: { sampleRate: 1 },
   });
 }
