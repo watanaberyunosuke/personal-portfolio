@@ -5,6 +5,7 @@ import { LaptopIcon, MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 export function ModeToggle({ className }: { readonly className?: string }) {
   const { resolvedTheme, setTheme, theme } = useTheme();
@@ -28,7 +29,14 @@ export function ModeToggle({ className }: { readonly className?: string }) {
       variant="ghost"
       size="icon"
       className={cn("size-9", className)}
-      onClick={() => setTheme(nextTheme)}
+      onClick={() => {
+        trackEvent("Theme Changed", {
+          from: selectedTheme,
+          to: nextTheme,
+          resolvedTheme: activeTheme,
+        });
+        setTheme(nextTheme);
+      }}
       aria-label={`Theme: ${selectedTheme}. Switch to ${nextTheme} mode`}
     >
       {selectedTheme === "system" ? (

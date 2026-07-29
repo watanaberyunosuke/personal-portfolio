@@ -1,4 +1,4 @@
-import Link from "next/link";
+import ContactEmailLink from "@/components/section/contact-email-link";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 import { DATA } from "@/data/resume";
 
@@ -25,12 +25,12 @@ export default function ContactSection() {
         </h2>
         <p className="mx-auto max-w-lg text-muted-foreground text-balance">
           Want to chat? Just shoot me an{" "}
-          <Link
-            href={`mailto:${DATA.contact.email}`}
+          <ContactEmailLink
+            email={DATA.contact.email}
             className="text-blue-500 hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           >
             email
-          </Link>{" "}
+          </ContactEmailLink>{" "}
           and I&apos;ll respond whenever I can. I will ignore all
           soliciting.
         </p>
