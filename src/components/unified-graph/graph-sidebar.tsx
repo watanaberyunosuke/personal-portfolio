@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, ArrowLeft, Hash } from "lucide-react";
 import Link from "next/link";
 import type { GraphData } from "@/data/graph-data";
+import { trackEvent } from "@/lib/analytics";
 
 interface SidebarSectionProps {
   readonly title: string;
@@ -45,6 +46,14 @@ function SidebarSection({
             <Link
               key={item.id}
               href={item.href ?? "#"}
+              onClick={() =>
+                trackEvent("Graph Sidebar Item Clicked", {
+                  section: title,
+                  itemId: item.id,
+                  itemName: item.name,
+                  href: item.href,
+                })
+              }
               className="px-4 py-1.5 text-sm text-muted-foreground/80 hover:text-foreground transition-colors block"
             >
               {item.name}
@@ -69,6 +78,11 @@ export function GraphSidebar({ data }: GraphSidebarProps) {
   );
 
   const toggleSection = (sectionId: string) => {
+    trackEvent("Graph Section Toggled", {
+      sectionId,
+      state: openSections[sectionId] ? "collapsed" : "expanded",
+    });
+
     setOpenSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
 

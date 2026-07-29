@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type { GraphData, GraphNode } from "@/data/graph-data";
+import { trackEvent } from "@/lib/analytics";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
@@ -43,6 +44,15 @@ export function ForceGraphView({ data }: ForceGraphViewProps) {
         nodeVal={(node: any) => (node.group === 1 ? 1.8 : 1)}
         onNodeClick={(node: any) => {
           const graphNode = node as GraphNode & { x?: number; y?: number };
+
+          trackEvent("Graph Node Clicked", {
+            nodeId: graphNode.id,
+            nodeName: graphNode.name,
+            nodeGroup: graphNode.group,
+            nodeCategory: graphNode.category,
+            href: graphNode.href,
+            navigates: Boolean(graphNode.href),
+          });
 
           if (fgRef.current) {
             fgRef.current.centerAt(graphNode.x, graphNode.y, 1000);

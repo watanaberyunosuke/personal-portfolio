@@ -1,3 +1,4 @@
+import BlogPostViewTracker from "@/components/analytics/blog-post-view-tracker";
 import { formatDate } from "@/lib/utils";
 import { DATA } from "@/data/resume";
 import type { Metadata } from "next";
@@ -114,6 +115,12 @@ export default async function Blog({
 
   return (
     <section id="blog">
+      <BlogPostViewTracker
+        slug={slug}
+        title={post.title}
+        publishedAt={post.publishedAt}
+        author={post.author ?? DATA.name}
+      />
       <script
         type="application/ld+json"
         suppressHydrationWarning

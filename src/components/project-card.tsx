@@ -2,6 +2,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
@@ -54,6 +55,16 @@ export function ProjectCard({
   links,
   className,
 }: Props) {
+  const trackProjectClick = (target: string, destination?: string) => {
+    trackEvent("Project Link Clicked", {
+      project: title,
+      target,
+      destination,
+      dates,
+      tags: [...tags],
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -67,6 +78,7 @@ export function ProjectCard({
           target="_blank"
           rel="noopener noreferrer"
           className="block"
+          onClick={() => trackProjectClick("media", href)}
         >
           {video ? (
             <video
@@ -91,7 +103,10 @@ export function ProjectCard({
                 key={idx}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  trackProjectClick(link.type, link.href);
+                }}
               >
                 <Badge
                   className="flex items-center gap-1.5 text-xs bg-black text-white hover:bg-black/90"
@@ -117,6 +132,7 @@ export function ProjectCard({
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
             aria-label={`Open ${title}`}
+            onClick={() => trackProjectClick("title", href)}
           >
             <ArrowUpRight className="h-4 w-4" aria-hidden />
           </Link>

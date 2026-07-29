@@ -1,6 +1,7 @@
 "use client";
 
 import RecommendedPlacesMap from "@/components/section/recommended-places-map";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import type { RecommendedPlace } from "@/types/recommended-place";
 import { ExternalLink, MapPin } from "lucide-react";
@@ -47,8 +48,26 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
 
   function selectCountry(country: string) {
     const nextView = countryViews.find((view) => view.country === country);
+
+    trackEvent("Recommended Country Selected", {
+      country,
+      placeCount: nextView?.places.length ?? 0,
+    });
+
     setSelectedCountry(country);
     setSelectedPlaceId(nextView?.places[0]?.id ?? "");
+  }
+
+  function selectPlace(place: RecommendedPlace) {
+    trackEvent("Recommended Place Selected", {
+      placeId: place.id,
+      placeName: place.name,
+      category: place.category,
+      country: place.country,
+      locationLabel: place.locationLabel,
+    });
+
+    setSelectedPlaceId(place.id);
   }
 
   return (
@@ -115,7 +134,7 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
                 <button
                   key={place.id}
                   type="button"
-                  onClick={() => setSelectedPlaceId(place.id)}
+                  onClick={() => selectPlace(place)}
                   className={cn(
                     "rounded-xl border px-4 py-3 text-left transition-all duration-200",
                     "hover:border-primary/30 hover:bg-background hover:shadow-sm",
@@ -179,6 +198,14 @@ export default function RecommendedPlaces({ places }: RecommendedPlacesProps) {
                       href={selectedPlace.mapHref}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() =>
+                        trackEvent("Recommended Place Map Opened", {
+                          placeId: selectedPlace.id,
+                          placeName: selectedPlace.name,
+                          category: selectedPlace.category,
+                          country: selectedPlace.country,
+                        })
+                      }
                       className="inline-flex items-center gap-2 text-sm font-semibold text-primary transition-colors hover:text-primary/75"
                     >
                       Visit on google map

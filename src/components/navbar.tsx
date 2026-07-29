@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HOMEPAGE_SECTIONS } from "@/data/homepage-sections";
+import { trackEvent } from "@/lib/analytics";
 import {
   BookOpen,
   BriefcaseBusiness,
@@ -78,13 +79,29 @@ export default function Navbar() {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent("Navbar Item Clicked", {
+                        label: item.label,
+                        href: item.href,
+                        external: true,
+                      })
+                    }
                   >
                     <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
                       <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
                     </DockIcon>
                   </a>
                 ) : (
-                  <Link href={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() =>
+                      trackEvent("Navbar Item Clicked", {
+                        label: item.label,
+                        href: item.href,
+                        external: false,
+                      })
+                    }
+                  >
                     <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
                       <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
                     </DockIcon>
@@ -116,6 +133,13 @@ export default function Navbar() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent("Social Link Clicked", {
+                        platform: social.label,
+                        href: social.href,
+                        location: "navbar",
+                      })
+                    }
                   >
                     <DockIcon className="rounded-3xl cursor-pointer size-full bg-background p-0 text-muted-foreground hover:text-foreground hover:bg-muted backdrop-blur-3xl border border-border transition-colors">
                       <IconComponent className="size-full rounded-sm overflow-hidden object-contain" />
