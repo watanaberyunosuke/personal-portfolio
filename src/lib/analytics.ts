@@ -10,6 +10,14 @@ const AMPLITUDE_API_KEY =
   process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY ??
   "8ad8238d6874f5ef00343453d92acb87";
 
+// The Amplitude project lives in the EU data region, so events must go to the
+// EU endpoint. This is not optional: the SDK defaults to 'US' and posts to
+// api2.amplitude.com, where events for an EU project are accepted and then
+// silently discarded — no error surfaces client-side, the data simply never
+// appears. Override only when pointing at a project in another region.
+const AMPLITUDE_SERVER_ZONE =
+  process.env.NEXT_PUBLIC_AMPLITUDE_SERVER_ZONE === "US" ? "US" : "EU";
+
 let initialized = false;
 
 /**
@@ -33,6 +41,7 @@ export function initAnalytics() {
   initialized = true;
 
   amplitude.initAll(AMPLITUDE_API_KEY, {
+    serverZone: AMPLITUDE_SERVER_ZONE,
     analytics: { autocapture: true },
     sessionReplay: { sampleRate: 1 },
   });
