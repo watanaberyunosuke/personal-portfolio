@@ -1,5 +1,6 @@
 import { CodeBlock } from "@/components/mdx/code-block";
 import { MediaContainer } from "@/components/mdx/media-container";
+import { MermaidDiagram } from "@/components/mdx/mermaid-diagram";
 import {
   Children,
   isValidElement,
@@ -145,6 +146,29 @@ function createHeading(level: HeadingLevel) {
   return Heading;
 }
 
+function getMermaidChart(children: ReactNode): string | null {
+  const [child] = Children.toArray(children);
+
+  if (
+    !isValidElement<{ className?: string; children?: ReactNode }>(child) ||
+    !/\blanguage-mermaid\b/.test(child.props.className ?? "")
+  ) {
+    return null;
+  }
+
+  return childrenToPlainText(child.props.children).trim();
+}
+
+function Pre(props: ComponentProps<"pre">) {
+  const chart = getMermaidChart(props.children);
+
+  if (chart) {
+    return <MermaidDiagram chart={chart} />;
+  }
+
+  return <CodeBlock {...props} />;
+}
+
 const headingComponents = {
   h1: createHeading(1),
   h2: createHeading(2),
@@ -158,7 +182,7 @@ export const mdxComponents = {
   MediaContainer,
   ...headingComponents,
   p: Paragraph,
-  pre: (props: ComponentProps<"pre">) => <CodeBlock {...props} />,
+  pre: Pre,
   hr: Rule,
   table: Table,
   code: InlineCode,
@@ -171,7 +195,7 @@ type MarkdownCodeProps = CodeProps & {
 export const markdownComponents = {
   ...headingComponents,
   p: Paragraph,
-  pre: (props: ComponentProps<"pre">) => <CodeBlock {...props} />,
+  pre: Pre,
   hr: Rule,
   table: Table,
   img: ({ src, alt }: ComponentProps<"img">) => {

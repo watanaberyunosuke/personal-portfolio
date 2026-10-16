@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ContactEmailLink from "@/components/section/contact-email-link";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 import { DATA } from "@/data/resume";
@@ -34,6 +35,20 @@ export default function ContactSection() {
           and I&apos;ll respond whenever I can. I will ignore all
           soliciting.
         </p>
+        <Link
+          href={DATA.contact.kofi}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://ko-fi.com/img/githubbutton_sm.svg"
+            alt="Support me on Ko-fi"
+            height={36}
+            className="h-9 w-auto"
+          />
+        </Link>
       </div>
     </div>
   );
