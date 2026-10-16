@@ -114,6 +114,7 @@ export const DATA = {
   contact: {
     email: "hello@example.com",
     tel: "+123456789",
+    kofi: "https://ko-fi.com/P5V328S6C2",
     social: {
       GitHub: {
         name: "GitHub",
@@ -211,6 +212,65 @@ export const DATA = {
     },
   ],
   projects: [
+    {
+      title: "GroundKit",
+      href: "https://getgroundkit.com",
+      dates: "Oct 2026 - Present",
+      active: true,
+      description:
+        "An app for apron, ramp and cargo crews at seven airports across Australia, Asia, Europe and Alaska. Native iOS (SwiftUI) and Android (Kotlin) apps show ramp status from METAR, TAF and NOTAMs, live aircraft, arrival and departure boards, turnaround checklists and shift fatigue tracking. Backed by a data platform that ingests weather, NOTAMs and ADS-B flight paths into MotherDuck, transforms them with dbt, and serves a web dashboard and API on Vercel.",
+      technologies: [
+        "Swift",
+        "Kotlin",
+        "Python",
+        "dbt",
+        "DuckDB",
+        "MotherDuck",
+        "Next.js",
+        "Vercel",
+      ],
+      links: [
+        {
+          type: "Website",
+          href: "https://getgroundkit.com",
+          icon: <Icons.Globe className="size-3" />,
+        },
+        {
+          type: "Dashboard",
+          href: "https://dashboard.getgroundkit.com",
+          icon: <Icons.Globe className="size-3" />,
+        },
+      ],
+      image: "",
+      video: "",
+    },
+    {
+      title: "Weave Digital Twins",
+      href: "https://github.com/watanaberyunosuke/weave-digital-twins",
+      dates: "Oct 2026 - Present",
+      active: true,
+      description:
+        "A framework for building digital twins of water, electricity and transport networks. Loads real public GIS topology into PostGIS, generates synthetic meter telemetry anchored to the real network, streams real and synthetic feeds through Kafka and Flink, and runs an EPANET hydraulic model against live data to flag leaks and bursts from residuals.",
+      technologies: [
+        "Python",
+        "Kafka",
+        "Flink",
+        "PostGIS",
+        "TimescaleDB",
+        "EPANET",
+        "Docker",
+        "Elasticsearch",
+      ],
+      links: [
+        {
+          type: "Source",
+          href: "https://github.com/watanaberyunosuke/weave-digital-twins",
+          icon: <Icons.GitHub className="size-3" />,
+        },
+      ],
+      image: "",
+      video: "",
+    },
     {
       title: "Bore (Bandicoot Outreach and Revival Endeavor)",
       href: "#",
