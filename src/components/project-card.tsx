@@ -29,6 +29,8 @@ function ProjectImage({ src, alt }: { src: string; alt: string }) {
 interface Props {
   title: string;
   href?: string;
+  /** Internal write-up path. When set, the card opens it in the same tab. */
+  articleHref?: string;
   description: string;
   dates: string;
   tags: readonly string[];
@@ -46,6 +48,7 @@ interface Props {
 export function ProjectCard({
   title,
   href,
+  articleHref,
   description,
   dates,
   tags,
@@ -55,6 +58,11 @@ export function ProjectCard({
   links,
   className,
 }: Props) {
+  const destination = articleHref ?? href;
+  const destinationProps = articleHref
+    ? {}
+    : { target: "_blank", rel: "noopener noreferrer" };
+
   const trackProjectClick = (target: string, destination?: string) => {
     trackEvent("Project Link Clicked", {
       project: title,
@@ -74,11 +82,12 @@ export function ProjectCard({
     >
       <div className="relative shrink-0">
         <Link
-          href={href || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={destination || "#"}
+          {...destinationProps}
           className="block"
-          onClick={() => trackProjectClick("media", href)}
+          onClick={() =>
+            trackProjectClick(articleHref ? "article" : "media", destination)
+          }
         >
           {video ? (
             <video
@@ -127,12 +136,13 @@ export function ProjectCard({
             <time className="text-xs text-muted-foreground">{dates}</time>
           </div>
           <Link
-            href={href || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={destination || "#"}
+            {...destinationProps}
             className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
-            aria-label={`Open ${title}`}
-            onClick={() => trackProjectClick("title", href)}
+            aria-label={articleHref ? `Read the write-up for ${title}` : `Open ${title}`}
+            onClick={() =>
+              trackProjectClick(articleHref ? "article" : "title", destination)
+            }
           >
             <ArrowUpRight className="h-4 w-4" aria-hidden />
           </Link>
