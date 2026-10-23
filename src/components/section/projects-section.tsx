@@ -1,10 +1,22 @@
 import BlurFade from "@/components/magicui/blur-fade";
+import { Icons } from "@/components/icons";
 import { ProjectCard } from "@/components/project-card";
-import { DATA } from "@/data/resume";
+import { getProjects } from "@/lib/projects";
+import type { ProjectLink } from "@/types/project";
 
 const BLUR_FADE_DELAY = 0.04;
 
-export default function ProjectsSection() {
+function getLinkIcon(type: ProjectLink["type"]) {
+    return type === "Source" ? (
+        <Icons.GitHub className="size-3" />
+    ) : (
+        <Icons.Globe className="size-3" />
+    );
+}
+
+export default async function ProjectsSection() {
+    const projects = await getProjects();
+
     return (
         <section>
             <div className="flex min-h-0 flex-col gap-y-8">
@@ -32,7 +44,7 @@ export default function ProjectsSection() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 auto-rows-fr">
-                    {DATA.projects.map((project, id) => (
+                    {projects.map((project, id) => (
                         <BlurFade
                             key={project.title}
                             delay={BLUR_FADE_DELAY * 12 + id * 0.05}
@@ -40,6 +52,7 @@ export default function ProjectsSection() {
                         >
                             <ProjectCard
                                 href={project.href}
+                                articleHref={project.articleHref}
                                 key={project.title}
                                 title={project.title}
                                 description={project.description}
@@ -47,7 +60,11 @@ export default function ProjectsSection() {
                                 tags={project.technologies}
                                 image={project.image}
                                 video={project.video}
-                                links={project.links}
+                                links={project.links.map((link) => ({
+                                    type: link.type,
+                                    href: link.href,
+                                    icon: getLinkIcon(link.type),
+                                }))}
                             />
                         </BlurFade>
                     ))}
