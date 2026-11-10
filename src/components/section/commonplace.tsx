@@ -1,20 +1,31 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DATA } from "@/data/resume";
-import { Book, Lightbulb, Wrench } from "lucide-react";
+import { Book, Lightbulb, Wrench, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { CommonplaceSection } from "@/types/commonplace";
 
-const ICONS = [Book, Lightbulb, Wrench] as const;
+const DEFAULT_ICONS: readonly LucideIcon[] = [Book, Lightbulb, Wrench];
+const NAMED_ICONS: Record<string, LucideIcon> = {
+  Book,
+  Lightbulb,
+  Wrench,
+};
 
-export default function Commonplace() {
+export default function Commonplace({
+  sections: sectionData,
+}: {
+  sections: readonly CommonplaceSection[];
+}) {
   const sections = useMemo(
     () =>
-      DATA.commonplace.map((section, idx) => ({
+      sectionData.map((section, idx) => ({
         ...section,
-        Icon: ICONS[idx % ICONS.length],
+        Icon:
+          (section.icon && NAMED_ICONS[section.icon]) ||
+          DEFAULT_ICONS[idx % DEFAULT_ICONS.length],
       })),
-    []
+    [sectionData]
   );
 
   const [activeTab, setActiveTab] = useState(sections[0]?.title ?? "");
@@ -90,16 +101,38 @@ export default function Commonplace() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {activeSection.items.map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-border bg-background/70 px-5 py-6 shadow-sm transition-colors hover:border-primary/20 hover:bg-background"
-              >
-                <div className="text-base font-semibold text-foreground">
-                  {item}
+            {activeSection.items.map((item) => {
+              const content = (
+                <>
+                  <div className="text-base font-semibold text-foreground">
+                    {item.title}
+                  </div>
+                  {item.note ? (
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      {item.note}
+                    </div>
+                  ) : null}
+                </>
+              );
+              const cardClass =
+                "rounded-2xl border border-border bg-background/70 px-5 py-6 shadow-sm transition-colors hover:border-primary/20 hover:bg-background";
+
+              return item.href ? (
+                <a
+                  key={item.title}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cardClass}
+                >
+                  {content}
+                </a>
+              ) : (
+                <div key={item.title} className={cardClass}>
+                  {content}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
