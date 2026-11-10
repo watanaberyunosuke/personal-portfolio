@@ -18,13 +18,17 @@ import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import HomepageSideNav from "@/components/homepage-side-nav";
 import { getRecommendedPlaces } from "@/lib/recommended-places";
+import { getCommonplace } from "@/lib/commonplace";
 
 const BLUR_FADE_DELAY = 0.04;
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  const recommendedPlaces = await getRecommendedPlaces();
+  const [recommendedPlaces, commonplace] = await Promise.all([
+    getRecommendedPlaces(),
+    getCommonplace(),
+  ]);
 
   return (
     <div className="relative left-1/2 grid w-[min(100vw,1760px)] -translate-x-1/2 gap-8 px-4 sm:px-6 lg:px-8 xl:grid-cols-[12rem_minmax(0,1fr)] 2xl:px-12">
@@ -141,7 +145,7 @@ export default async function Page() {
 
         {/* 6. Commonplace */}
         <div id="commonplace" className="scroll-mt-24">
-          <Commonplace />
+          <Commonplace sections={commonplace} />
         </div>
 
         <SectionCard
